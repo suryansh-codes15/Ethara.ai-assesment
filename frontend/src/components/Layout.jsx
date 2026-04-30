@@ -107,7 +107,7 @@ export default function Layout() {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <p className="font-bold text-white text-sm whitespace-nowrap">TaskFlow</p>
+                <p className="font-display font-bold text-white text-sm whitespace-nowrap">TaskFlow</p>
                 <p className="text-[10px] text-[var(--text-muted)] whitespace-nowrap">Workspace</p>
               </motion.div>
             )}
@@ -158,7 +158,7 @@ export default function Layout() {
             title="Quick Create (⌘K)"
           >
             <span className="text-base w-5 text-center flex-shrink-0 text-[var(--brand-primary)]">+</span>
-            {(!collapsed || forMobile) && <span className="flex-1 font-semibold text-[var(--brand-primary)]">Quick Create</span>}
+            {(!collapsed || forMobile) && <span className="flex-1 font-display font-semibold text-[var(--brand-primary)]">Quick Create</span>}
           </button>
         )}
       </nav>

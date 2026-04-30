@@ -1,38 +1,36 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  darkMode: 'class',
   theme: {
     extend: {
-      colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          900: '#1e3a8a',
-        },
-        surface: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
-        }
-      },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Syne', 'Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
+      colors: {
+        void:    '#02020a',
+        surface: '#0d0d1a',
+        brand:   '#7c3aed',
+        brand2:  '#4f46e5',
+        cyan:    '#06b6d4',
+      },
       animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'slide-up': 'slideUp 0.4s ease-out',
-        'pulse-slow': 'pulse 3s infinite',
+        'shimmer':     'shimmer 2.5s linear infinite',
+        'float':       'float 4s ease-in-out infinite',
+        'pulse-glow':  'pulseGlow 2s ease-in-out infinite',
+        'aurora':      'aurora 12s ease-in-out infinite alternate',
       },
       keyframes: {
-        fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
-        slideUp: { from: { opacity: '0', transform: 'translateY(16px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
-      }
+        shimmer:   { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+        float:     { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-12px)' } },
+        pulseGlow: { '0%,100%': { opacity: 1 }, '50%': { opacity: 0.5 } },
+        aurora:    { '0%': { transform: 'translate(0,0) scale(1)' }, '100%': { transform: 'translate(5%,5%) scale(1.1)' } },
+      },
     },
   },
   plugins: [],

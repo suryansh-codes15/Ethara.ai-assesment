@@ -10,6 +10,7 @@
     "prestart": "npx prisma db push"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.2.1",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
@@ -18,10 +19,16 @@
     "express": "^4.18.2",
     "express-rate-limit": "^8.4.1",
     "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
-    "socket.io": "^4.8.3"
+    "node-cache": "^5.1.2",
+    "node-cron": "^4.2.1",
+    "openai": "^6.35.0",
+    "pdfkit": "^0.18.0",
+    "socket.io": "^4.8.3",
+    "xss-clean": "^0.1.4"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",

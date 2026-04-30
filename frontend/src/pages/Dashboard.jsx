@@ -129,7 +129,7 @@ export default function Dashboard() {
             <p className="text-white/70 text-sm font-medium mb-1">
               {emoji} {format(clock, 'EEEE, MMMM d, yyyy')}
             </p>
-            <h1 className="text-2xl md:text-3xl font-bold text-white">
+            <h1 className="text-2xl md:text-3xl font-display font-bold text-white">
               {greetText}, {user?.name?.split(' ')[0]}!
             </h1>
             <p className="text-white/60 text-sm mt-1">
@@ -139,7 +139,7 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <div className="text-4xl font-bold text-white font-mono tracking-tight">
+            <div className="text-4xl font-display font-bold text-white tracking-tight">
               {format(clock, 'HH:mm')}
               <span className="text-xl text-white/50">:{format(clock, 'ss')}</span>
             </div>
@@ -171,7 +171,7 @@ export default function Dashboard() {
                   {cfg.icon}
                 </div>
               </div>
-              <div className="text-3xl font-bold text-white">
+              <div className="text-3xl font-display font-bold text-white">
                 <CountUp end={stats?.[cfg.key] ?? 0} duration={900} />
               </div>
               <p className="text-sm text-[var(--text-muted)] mt-0.5">{cfg.label}</p>
@@ -185,7 +185,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Velocity chart */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card p-5">
-          <h2 className="text-sm font-semibold text-[var(--text-secondary)] mb-1">Velocity — Last 14 Days</h2>
+          <h2 className="text-sm font-display font-semibold text-[var(--text-secondary)] mb-1">Velocity — Last 14 Days</h2>
           <p className="text-xs text-[var(--text-muted)] mb-4">Tasks completed per day</p>
           {velocity.length > 0 ? (
             <ResponsiveContainer width="100%" height={160}>
@@ -212,7 +212,7 @@ export default function Dashboard() {
 
         {/* Tasks by project bar chart */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="card p-5">
-          <h2 className="text-sm font-semibold text-[var(--text-secondary)] mb-1">Tasks by Project</h2>
+          <h2 className="text-sm font-display font-semibold text-[var(--text-secondary)] mb-1">Tasks by Project</h2>
           <p className="text-xs text-[var(--text-muted)] mb-4">Total vs completed</p>
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={160}>
@@ -238,14 +238,14 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Activity heatmap */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card p-5 lg:col-span-2">
-          <h2 className="text-sm font-semibold text-[var(--text-secondary)] mb-1">Activity Heatmap</h2>
+          <h2 className="text-sm font-display font-semibold text-[var(--text-secondary)] mb-1">Activity Heatmap</h2>
           <p className="text-xs text-[var(--text-muted)] mb-4">Task completions over the past year</p>
           <ActivityHeatmap data={heatmap} />
         </motion.div>
 
         {/* Recent Activity */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="card p-5">
-          <h2 className="text-sm font-semibold text-[var(--text-secondary)] mb-1">Recent Activity</h2>
+          <h2 className="text-sm font-display font-semibold text-[var(--text-secondary)] mb-1">Recent Activity</h2>
           <p className="text-xs text-[var(--text-muted)] mb-4">Latest updates across projects</p>
           <ActivityFeed activities={activities} />
         </motion.div>
@@ -254,7 +254,7 @@ export default function Dashboard() {
       {/* ── Recent Tasks ── */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-[var(--text-secondary)]">Recent Tasks</h2>
+          <h2 className="text-sm font-display font-semibold text-[var(--text-secondary)]">Recent Tasks</h2>
           <Link to="/projects" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">View all →</Link>
         </div>
         {recentTasks.length > 0 ? (

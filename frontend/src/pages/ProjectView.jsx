@@ -13,6 +13,8 @@ import TaskSlideOver from '../components/TaskSlideOver';
 import SkeletonLoader from '../components/SkeletonLoader';
 import RichTextEditor from '../components/RichTextEditor';
 import { format } from 'date-fns';
+import AIAssistant from '../components/AIAssistant';
+import { Sparkles, Brain, Loader2 } from 'lucide-react';
 
 const STATUSES = ['todo', 'in-progress', 'done'];
 const STATUS_META = {
@@ -46,6 +48,8 @@ export default function ProjectView() {
     title: '', description: '', assignedTo: '', status: 'todo', priority: 'medium', dueDate: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [projectSummary, setProjectSummary] = useState('');
+  const [summarizing, setSummarizing] = useState(false);
 
   // Inline add task
   const [inlineCol, setInlineCol] = useState(null);
@@ -164,6 +168,19 @@ export default function ProjectView() {
       await tasksAPI.update(taskId, { status: newStatus });
       if (newStatus === 'done') fireConfetti();
     } catch { fetchAll(); }
+  };
+
+  const handleSummarize = async () => {
+    setSummarizing(true);
+    try {
+      const { data } = await api.post('/ai/summarize-project', { projectId: id });
+      setProjectSummary(data.summary);
+      toast.success("Executive summary generated!");
+    } catch {
+      toast.error("AI summary failed");
+    } finally {
+      setSummarizing(false);
+    }
   };
 
   // Drag and drop
@@ -287,10 +304,24 @@ export default function ProjectView() {
                 style={{ background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}40` }}>
                 {project.status}
               </span>
+              <button 
+                onClick={handleSummarize}
+                disabled={summarizing}
+                className="ml-2 p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-800/50 transition-colors disabled:opacity-50"
+                title="AI Project Summary"
+              >
+                {summarizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+              </button>
             </div>
             {project.description && <p className="text-sm text-[var(--text-muted)] mt-1 ml-6">{project.description}</p>}
           </div>
           <div className="flex gap-2 flex-shrink-0">
+            <AIAssistant 
+              projectId={id} 
+              projectName={project.name} 
+              projectDescription={project.description} 
+              onTasksGenerated={fetchAll} 
+            />
             {isAdmin && (
               <>
                 <button onClick={() => setMemberModal(true)} className="btn-secondary text-sm py-2">👥 Members</button>
@@ -299,6 +330,34 @@ export default function ProjectView() {
             )}
           </div>
         </div>
+
+        {/* AI Project Summary */}
+        <AnimatePresence>
+          {projectSummary && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }} 
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-4">
+                 <button onClick={() => setProjectSummary('')} className="text-indigo-400 hover:text-indigo-600">✕</button>
+              </div>
+              <div className="flex gap-3">
+                 <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-800 flex items-center justify-center flex-shrink-0">
+                    <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                 </div>
+                 <div>
+                    <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-2">
+                       AI Executive Summary
+                       <Sparkles className="w-3 h-3 animate-pulse" />
+                    </h4>
+                    <p className="text-sm text-indigo-800 dark:text-indigo-400 mt-1 leading-relaxed">{projectSummary}</p>
+                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Stats bar */}

@@ -1,4 +1,5 @@
 import api from './axios';
+export default api;
 
 export const authAPI = {
   signup: (data) => api.post('/auth/signup', data),

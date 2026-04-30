@@ -57,7 +57,7 @@ export default function Signup() {
             style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 0 32px rgba(99,102,241,0.4)' }}>
             T
           </div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Create your account</h1>
+          <h1 className="text-2xl font-display font-bold text-[var(--text-primary)]">Create your account</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">Join TaskFlow and start collaborating</p>
         </div>
 
