@@ -12,6 +12,8 @@ const addComment = async (req, res, next) => {
       include: { user: { select: { name: true, avatar: true } } }
     });
 
+    const formatted = { ...comment, _id: comment.id };
+
     // Notify assignee if someone else comments
     if (task.assignedToId && task.assignedToId !== req.user.id) {
       await createNotification({
@@ -22,7 +24,11 @@ const addComment = async (req, res, next) => {
       });
     }
 
-    res.status(201).json({ success: true, comment: { ...comment, _id: comment.id } });
+    // Emit to project room for real-time updates
+    const { emitToProject } = require('../services/socketService');
+    emitToProject(task.projectId, 'new-comment', { taskId, comment: formatted });
+
+    res.status(201).json({ success: true, comment: formatted });
   } catch (error) {
     next(error);
   }

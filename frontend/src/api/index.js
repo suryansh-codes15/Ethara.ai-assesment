@@ -1,4 +1,9 @@
 import api from './axios';
+export const chatAPI = {
+  getMessages: (projectId) => api.get(`/chat/${projectId}`),
+  send: (projectId, text) => api.post(`/chat/${projectId}`, { text }),
+};
+
 export default api;
 
 export const authAPI = {

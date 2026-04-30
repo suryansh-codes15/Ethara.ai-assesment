@@ -16,6 +16,8 @@ import { format } from 'date-fns';
 import AIAssistant from '../components/AIAssistant';
 import { Sparkles, Brain, Loader2 } from 'lucide-react';
 
+import ChatPanel from '../components/ChatPanel';
+
 const STATUSES = ['todo', 'in-progress', 'done'];
 const STATUS_META = {
   todo:        { label: '📝 To Do',      color: '#94a3b8', bg: 'rgba(148,163,184,0.08)' },
@@ -38,8 +40,9 @@ export default function ProjectView() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
 
-  // Slide over
+  // Sidebars
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [showChat, setShowChat] = useState(false);
 
   // Task modal
   const [taskModal, setTaskModal] = useState(false);
@@ -330,6 +333,9 @@ export default function ProjectView() {
             />
             {isAdmin && (
               <>
+                <button onClick={() => setShowChat(true)} className="btn-secondary text-sm py-2 px-3 flex items-center gap-2">
+                  💬 Chat
+                </button>
                 <button onClick={() => setMemberModal(true)} className="btn-secondary text-sm py-2">👥 Members</button>
                 <button onClick={() => openCreateTask()} className="btn-primary text-sm py-2">+ Task</button>
               </>
@@ -649,6 +655,13 @@ export default function ProjectView() {
         open={!!selectedTaskId}
         onClose={() => setSelectedTaskId(null)}
         onUpdated={fetchAll}
+      />
+
+      {/* Chat Panel */}
+      <ChatPanel
+        projectId={id}
+        open={showChat}
+        onClose={() => setShowChat(false)}
       />
     </div>
   );

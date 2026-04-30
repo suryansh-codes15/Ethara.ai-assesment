@@ -60,6 +60,7 @@ app.use("/api/sprints", require("./routes/sprints"));
 app.use("/api/ai", require("./routes/ai"));
 app.use("/api/analytics", require("./routes/analytics"));
 app.use("/api/search", require("./routes/search"));
+app.use("/api/chat", require("./routes/chat"));
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "TaskFlow Enterprise API is running 🚀", version: "3.0.0" });

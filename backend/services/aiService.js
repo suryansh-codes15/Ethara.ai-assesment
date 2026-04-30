@@ -6,7 +6,7 @@ const client = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1",
 });
 
-const MODEL = "llama3-70b-8192"; 
+const MODEL = "llama-3.3-70b-versatile"; 
 
 /**
  * Generate tasks for a project based on its name and description.
