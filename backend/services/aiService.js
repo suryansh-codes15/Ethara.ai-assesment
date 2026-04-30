@@ -6,7 +6,7 @@ const client = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1",
 });
 
-const MODEL = "llama-3.1-70b-versatile"; 
+const MODEL = "llama3-70b-8192"; 
 
 /**
  * Generate tasks for a project based on its name and description.
@@ -16,32 +16,37 @@ const generateTasks = async (projectName, description) => {
     You are an expert project manager. Given a project named "${projectName}" with the description: "${description}",
     suggest 5-8 highly relevant tasks.
     
-    Return the response ONLY as a JSON array of objects with the following structure:
+    Return the response ONLY as a JSON array. Do not include any introductory text or explanations.
+    Structure:
     [
       {
         "title": "Task Title",
         "description": "Short but detailed task description",
-        "priority": "low" | "medium" | "high",
-        "daysFromNow": 1-14
+        "priority": "low",
+        "daysFromNow": 1
       }
     ]
     
-    Ensure the tasks are professional and specific to the project context.
+    Ensure priority is exactly one of: "low", "medium", "high".
   `;
 
   try {
     const response = await client.chat.completions.create({
       model: MODEL,
       messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" }
+      temperature: 0.2,
     });
 
-    const content = response.choices[0].message.content;
-    const parsed = JSON.parse(content);
+    const content = response.choices[0].message.content.trim();
+    // Extract JSON if AI included extra text
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    const jsonString = jsonMatch ? jsonMatch[0] : content;
+    
+    const parsed = JSON.parse(jsonString);
     return Array.isArray(parsed) ? parsed : (parsed.tasks || Object.values(parsed)[0]);
   } catch (error) {
     console.error("Groq AI Generate Tasks Error:", error);
-    throw new Error("Failed to generate tasks with Groq AI");
+    throw new Error("Failed to generate tasks with AI. Please check your Groq API key.");
   }
 };
 
@@ -64,7 +69,7 @@ const summarizeProject = async (projectData) => {
     return response.choices[0].message.content.trim();
   } catch (error) {
     console.error("Groq AI Summarize Project Error:", error);
-    throw new Error("Failed to summarize project with Groq AI");
+    throw new Error("Failed to summarize project with AI. Please check your Groq API key.");
   }
 };
 
