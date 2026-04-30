@@ -1,4 +1,5 @@
 const prisma = require('../config/db');
+const { createActivity, createNotification } = require('../services/eventService');
 
 const formatUser = (user) => {
   if (!user) return null;
@@ -49,13 +50,39 @@ const createTask = async (req, res, next) => {
         createdById: req.user.id
       },
       include: {
-        assignedTo: { select: { name: true, email: true, avatar: true } },
-        createdBy: { select: { name: true, email: true, avatar: true } },
-        project: { select: { name: true } }
+        assignedTo: { select: { id: true, name: true, email: true, avatar: true } },
+        createdBy: { select: { id: true, name: true, email: true, avatar: true } },
+        project: { select: { id: true, name: true } }
       }
     });
 
-    res.status(201).json({ success: true, task: formatTask(task) });
+    const formattedTask = formatTask(task);
+
+    // Logs & Notifications
+    await createActivity({
+      userId: req.user.id,
+      action: 'created',
+      entityType: 'task',
+      entityId: task.id,
+      details: `Created task "${task.title}"`
+    });
+
+    if (assignedTo && assignedTo !== req.user.id) {
+      await createNotification({
+        userId: assignedTo,
+        type: 'assignment',
+        message: `${req.user.name} assigned a new task to you: ${task.title}`,
+        link: `/projects/${project}?task=${task.id}`
+      });
+    }
+    
+    // Broadcast to project room
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${project}`).emit('task-created', formattedTask);
+    }
+
+    res.status(201).json({ success: true, task: formattedTask });
   } catch (error) {
     next(error);
   }
@@ -91,7 +118,10 @@ const getTasks = async (req, res, next) => {
 
     const tasks = await prisma.task.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ],
       include: {
         assignedTo: { select: { name: true, email: true, avatar: true } },
         createdBy: { select: { name: true, email: true, avatar: true } },
@@ -113,9 +143,14 @@ const getTask = async (req, res, next) => {
     const task = await prisma.task.findUnique({
       where: { id: req.params.id },
       include: {
-        assignedTo: { select: { name: true, email: true, avatar: true } },
-        createdBy: { select: { name: true, email: true, avatar: true } },
-        project: { select: { name: true, members: true } }
+        assignedTo: { select: { id: true, name: true, email: true, avatar: true } },
+        createdBy: { select: { id: true, name: true, email: true, avatar: true } },
+        project: { select: { id: true, name: true, members: true } },
+        comments: {
+          include: { user: { select: { id: true, name: true, avatar: true } } },
+          orderBy: { createdAt: 'desc' }
+        },
+        subtasks: { orderBy: { order: 'asc' } }
       }
     });
 
@@ -164,13 +199,41 @@ const updateTask = async (req, res, next) => {
       where: { id: req.params.id },
       data: dataToUpdate,
       include: {
-        assignedTo: { select: { name: true, email: true, avatar: true } },
-        createdBy: { select: { name: true, email: true, avatar: true } },
-        project: { select: { name: true } }
+        assignedTo: { select: { id: true, name: true, email: true, avatar: true } },
+        createdBy: { select: { id: true, name: true, email: true, avatar: true } },
+        project: { select: { id: true, name: true } }
       }
     });
 
-    res.json({ success: true, task: formatTask(updatedTask) });
+    const formattedTask = formatTask(updatedTask);
+
+    // Logs & Notifications for assignment change
+    if (dataToUpdate.assignedToId && dataToUpdate.assignedToId !== task.assignedToId) {
+      await createNotification({
+        userId: dataToUpdate.assignedToId,
+        type: 'assignment',
+        message: `${req.user.name} assigned a task to you: ${updatedTask.title}`,
+        link: `/projects/${updatedTask.projectId}?task=${updatedTask.id}`
+      });
+    }
+
+    if (dataToUpdate.status && dataToUpdate.status !== task.status) {
+      await createActivity({
+        userId: req.user.id,
+        action: 'status_change',
+        entityType: 'task',
+        entityId: updatedTask.id,
+        details: `Changed status from ${task.status} to ${dataToUpdate.status}`
+      });
+    }
+    
+    // Broadcast to project room
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${updatedTask.projectId}`).emit('task-updated', formattedTask);
+    }
+
+    res.json({ success: true, task: formattedTask });
   } catch (error) {
     next(error);
   }
@@ -181,7 +244,15 @@ const updateTask = async (req, res, next) => {
 // @access  Private/Admin
 const deleteTask = async (req, res, next) => {
   try {
-    await prisma.task.delete({ where: { id: req.params.id } });
+    // Need task data for projectId before deleting if we want to broadcast
+    const task = await prisma.task.findUnique({ where: { id: req.params.id } });
+    if (task) {
+      const io = req.app.get('io');
+      if (io) {
+        io.to(`project:${task.projectId}`).emit('task-deleted', req.params.id);
+      }
+      await prisma.task.delete({ where: { id: req.params.id } });
+    }
     res.json({ success: true, message: 'Task deleted successfully.' });
   } catch (error) {
     if (error.code === 'P2025') {
@@ -191,4 +262,24 @@ const deleteTask = async (req, res, next) => {
   }
 };
 
-module.exports = { createTask, getTasks, getTask, updateTask, deleteTask };
+// @desc    Reorder tasks (Kanban)
+// @route   POST /api/tasks/reorder
+// @access  Private
+const reorderTasks = async (req, res, next) => {
+  try {
+    const { tasks } = req.body; // Array of { id, status, order }
+    
+    await Promise.all(tasks.map(t => 
+      prisma.task.update({
+        where: { id: t.id },
+        data: { status: t.status, order: t.order }
+      })
+    ));
+
+    res.json({ success: true, message: 'Tasks reordered successfully.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { createTask, getTasks, getTask, updateTask, deleteTask, reorderTasks };

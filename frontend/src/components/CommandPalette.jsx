@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const QUICK_ACTIONS = [
   { icon: '⬡', label: 'Go to Dashboard', action: 'nav', to: '/dashboard', shortcut: '⌘D' },
   { icon: '◈', label: 'Go to Projects', action: 'nav', to: '/projects', shortcut: '⌘P' },
+  { icon: '⎍', label: 'Go to Sprints', action: 'nav', to: '/sprints', shortcut: '⌘R' },
   { icon: '⚙', label: 'Settings', action: 'nav', to: '/profile', shortcut: '⌘S' },
   { icon: '+', label: 'New Project', action: 'nav', to: '/projects?new=1', shortcut: '' },
 ];

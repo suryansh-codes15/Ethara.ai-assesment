@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { tasksAPI, commentsAPI, subtasksAPI } from '../api';
+import { tasksAPI, commentsAPI, subtasksAPI, activityAPI } from '../api';
+import RichTextEditor from './RichTextEditor';
+import ActivityFeed from './ActivityFeed';
 import { useAuth } from '../context/AuthContext';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 
@@ -21,13 +23,19 @@ export default function TaskSlideOver({ taskId, open, onClose, onUpdated }) {
   const [task, setTask] = useState(null);
   const [subtasks, setSubtasks] = useState([]);
   const [comments, setComments] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('comments'); // 'comments' or 'activity'
   const [newSubtask, setNewSubtask] = useState('');
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [timerActive, setTimerActive] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descValue, setDescValue] = useState('');
+  const [aiRefining, setAiRefining] = useState(false);
+  const [files, setFiles] = useState([]);
   const commentRef = useRef(null);
   const intervalRef = useRef(null);
 
@@ -35,14 +43,16 @@ export default function TaskSlideOver({ taskId, open, onClose, onUpdated }) {
     if (!taskId) return;
     setLoading(true);
     try {
-      const [taskRes, subtasksRes, commentsRes] = await Promise.all([
+      const [taskRes, commentsRes, activityRes] = await Promise.all([
         tasksAPI.getOne(taskId),
-        subtasksAPI.getAll(taskId),
         commentsAPI.getAll(taskId),
+        activityAPI.getAll({ entityId: taskId })
       ]);
       setTask(taskRes.data.task);
-      setSubtasks(subtasksRes.data.subtasks || []);
+      setDescValue(taskRes.data.task.description || '');
+      setSubtasks(taskRes.data.task.subtasks || []);
       setComments(commentsRes.data.comments || []);
+      setActivities(activityRes.data.activities || []);
     } catch { /* silent */ }
     finally { setLoading(false); }
   };
@@ -77,6 +87,26 @@ export default function TaskSlideOver({ taskId, open, onClose, onUpdated }) {
       setTask(t => ({ ...t, status }));
       onUpdated?.();
     } catch { /* silent */ }
+  };
+  
+  const handleUpdateDescription = async () => {
+    try {
+      await tasksAPI.update(taskId, { description: descValue });
+      setTask(t => ({ ...t, description: descValue }));
+      setEditingDesc(false);
+      onUpdated?.();
+    } catch { /* silent */ }
+  };
+
+  const handleAIRefine = async () => {
+    if (!descValue.trim()) return;
+    setAiRefining(true);
+    // Simulate AI processing
+    setTimeout(async () => {
+      const refined = `<h3>🚀 Refined Requirements</h3><p>${descValue}</p><ul><li><b>Goal:</b> Complete this task with high quality.</li><li><b>Acceptance Criteria:</b> Verified and tested.</li></ul><p><i>Automatically refined by Obsidian AI.</i></p>`;
+      setDescValue(refined);
+      setAiRefining(false);
+    }, 1500);
   };
 
   const handleAddSubtask = async () => {
@@ -168,15 +198,51 @@ export default function TaskSlideOver({ taskId, open, onClose, onUpdated }) {
                 <p className="text-[var(--text-muted)] text-sm">Task not found.</p>
               ) : (
                 <>
-                  {/* Title + Priority */}
+                   {/* Title + Description */}
                   <div>
                     <div className="flex items-start gap-3 mb-2">
                       <div className="w-1 flex-shrink-0 self-stretch rounded-full mt-1" style={{ background: priority.color, minHeight: '24px' }} />
                       <h2 className="text-lg font-bold text-[var(--text-primary)] leading-snug">{task.title}</h2>
                     </div>
-                    {task.description && (
-                      <p className="text-sm text-[var(--text-secondary)] ml-4 leading-relaxed">{task.description}</p>
-                    )}
+                    
+                    <div className="ml-4">
+                      {editingDesc ? (
+                        <div className="space-y-2">
+                          <RichTextEditor 
+                            content={descValue} 
+                            onChange={setDescValue} 
+                            placeholder="Add more details..." 
+                          />
+                          <div className="flex gap-2 justify-between items-center">
+                            <button 
+                              onClick={handleAIRefine} 
+                              disabled={aiRefining}
+                              className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 bg-indigo-500/10 px-2 py-1 rounded"
+                            >
+                              {aiRefining ? '✨ Refining...' : '✨ AI Refine'}
+                            </button>
+                            <div className="flex gap-2">
+                              <button onClick={() => { setEditingDesc(false); setDescValue(task.description || ''); }} className="btn-secondary py-1.5 text-xs">Cancel</button>
+                              <button onClick={handleUpdateDescription} className="btn-primary py-1.5 text-xs">Save</button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div 
+                          onClick={() => isAdmin && setEditingDesc(true)}
+                          className={`group cursor-pointer p-2 rounded-lg hover:bg-white/[0.03] transition-all ${!task.description ? 'border border-dashed border-[var(--border)]' : ''}`}
+                        >
+                          {task.description ? (
+                            <div className="prose prose-invert prose-sm max-w-none text-[var(--text-secondary)]" dangerouslySetInnerHTML={{ __html: task.description }} />
+                          ) : (
+                            <span className="text-xs text-[var(--text-muted)] italic">Add description...</span>
+                          )}
+                          {isAdmin && (
+                            <span className="text-[10px] text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity mt-1 block">Click to edit</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Meta grid */}
@@ -249,6 +315,21 @@ export default function TaskSlideOver({ taskId, open, onClose, onUpdated }) {
                       {timerActive ? '⏹ Stop' : '▶ Start'}
                     </button>
                   </div>
+                  
+                  {/* Attachments */}
+                  <div className="p-3 rounded-xl" style={{ background: 'var(--surface-2)' }}>
+                    <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mb-3 font-semibold">Attachments</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="border border-dashed border-[var(--border)] rounded-xl p-3 flex flex-col items-center justify-center bg-white/[0.01] hover:bg-white/[0.03] transition-all cursor-pointer">
+                        <span className="text-lg mb-1">📁</span>
+                        <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Upload</span>
+                      </div>
+                      <div className="border border-dashed border-[var(--border)] rounded-xl p-3 flex flex-col items-center justify-center bg-white/[0.01] hover:bg-white/[0.03] transition-all cursor-pointer">
+                        <span className="text-lg mb-1">🔗</span>
+                        <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Link</span>
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Subtasks */}
                   <div>
@@ -309,56 +390,79 @@ export default function TaskSlideOver({ taskId, open, onClose, onUpdated }) {
                     </div>
                   </div>
 
-                  {/* Comments */}
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-                      Comments <span className="text-[var(--text-muted)] font-normal">({comments.length})</span>
-                    </p>
-                    <div className="space-y-3">
-                      {comments.map(c => (
-                        <div key={c._id} className="flex gap-3 animate-slide-up">
-                          <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-                            {c.user?.name?.charAt(0)}
-                          </div>
-                          <div className="flex-1 p-3 rounded-xl text-sm" style={{ background: 'var(--surface-2)' }}>
-                            <div className="flex items-baseline gap-2 mb-1">
-                              <span className="font-semibold text-[var(--text-primary)] text-xs">{c.user?.name}</span>
-                              <span className="text-[10px] text-[var(--text-muted)]">
-                                {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
-                              </span>
-                            </div>
-                            <p className="text-[var(--text-secondary)] leading-relaxed">{c.text}</p>
-                          </div>
-                        </div>
+                  {/* Tabs for Comments / Activity */}
+                  <div className="pt-4 border-t border-[var(--border)]">
+                    <div className="flex gap-4 mb-4 border-b border-[var(--border)]">
+                      {['comments', 'activity'].map(t => (
+                        <button
+                          key={t}
+                          onClick={() => setTab(t)}
+                          className={`pb-2 text-sm font-semibold transition-all relative ${
+                            tab === t ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                          }`}
+                        >
+                          {t.charAt(0).toUpperCase() + t.slice(1)}
+                          {tab === t && (
+                            <motion.div layoutId="task-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--brand-primary)]" />
+                          )}
+                        </button>
                       ))}
                     </div>
 
-                    {/* Add comment */}
-                    <div className="flex gap-2 mt-3">
-                      <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-                        {user?.name?.charAt(0)}
+                    {tab === 'comments' ? (
+                      <div>
+                        <div className="space-y-3">
+                          {comments.length === 0 && (
+                            <p className="text-xs text-[var(--text-muted)] italic text-center py-4">No comments yet.</p>
+                          )}
+                          {comments.map(c => (
+                            <div key={c._id} className="flex gap-3 animate-slide-up">
+                              <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+                                {c.user?.name?.charAt(0)}
+                              </div>
+                              <div className="flex-1 p-3 rounded-xl text-sm" style={{ background: 'var(--surface-2)' }}>
+                                <div className="flex items-baseline gap-2 mb-1">
+                                  <span className="font-semibold text-[var(--text-primary)] text-xs">{c.user?.name}</span>
+                                  <span className="text-[10px] text-[var(--text-muted)]">
+                                    {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
+                                  </span>
+                                </div>
+                                <p className="text-[var(--text-secondary)] leading-relaxed">{c.text}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Add comment */}
+                        <div className="flex gap-2 mt-4">
+                          <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+                            {user?.name?.charAt(0)}
+                          </div>
+                          <div className="flex-1">
+                            <textarea
+                              ref={commentRef}
+                              rows={2}
+                              value={newComment}
+                              onChange={e => setNewComment(e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleAddComment(); }}
+                              placeholder="Add a comment... (⌘↵ to submit)"
+                              className="input text-xs py-2 resize-none"
+                            />
+                            <button
+                              onClick={handleAddComment}
+                              disabled={submitting || !newComment.trim()}
+                              className="btn-primary text-xs py-1.5 mt-1.5"
+                            >
+                              {submitting ? 'Posting...' : 'Comment'}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <textarea
-                          ref={commentRef}
-                          rows={2}
-                          value={newComment}
-                          onChange={e => setNewComment(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleAddComment(); }}
-                          placeholder="Add a comment... (⌘↵ to submit)"
-                          className="input text-xs py-2 resize-none"
-                        />
-                        <button
-                          onClick={handleAddComment}
-                          disabled={submitting || !newComment.trim()}
-                          className="btn-primary text-xs py-1.5 mt-1.5"
-                        >
-                          {submitting ? 'Posting...' : 'Comment'}
-                        </button>
-                      </div>
-                    </div>
+                    ) : (
+                      <ActivityFeed activities={activities} />
+                    )}
                   </div>
                 </>
               )}

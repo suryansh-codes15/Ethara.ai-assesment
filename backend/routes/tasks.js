@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { createTask, getTasks, getTask, updateTask, deleteTask } = require('../controllers/taskController');
+const { createTask, getTasks, getTask, updateTask, deleteTask, reorderTasks } = require('../controllers/taskController');
 const { protect, adminOnly } = require('../middleware/auth');
 const { validate, taskSchema, updateTaskSchema } = require('../middleware/validate');
 
 router.use(protect);
+
+router.post('/reorder', reorderTasks);
 
 router.route('/')
   .get(getTasks)

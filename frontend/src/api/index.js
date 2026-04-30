@@ -23,6 +23,7 @@ export const tasksAPI = {
   create: (data) => api.post('/tasks', data),
   update: (id, data) => api.patch(`/tasks/${id}`, data),
   delete: (id) => api.delete(`/tasks/${id}`),
+  reorder: (tasks) => api.post('/tasks/reorder', { tasks }),
 };
 
 export const dashboardAPI = {
@@ -36,8 +37,8 @@ export const analyticsAPI = {
 };
 
 export const commentsAPI = {
-  getAll: (taskId) => api.get(`/tasks/${taskId}/comments`),
-  add: (taskId, text) => api.post(`/tasks/${taskId}/comments`, { text }),
+  getAll: (taskId) => api.get(`/comments/task/${taskId}`),
+  add: (taskId, text) => api.post('/comments', { taskId, text }),
 };
 
 export const subtasksAPI = {
@@ -50,9 +51,19 @@ export const subtasksAPI = {
 export const notificationsAPI = {
   getAll: () => api.get('/notifications'),
   markAllRead: () => api.post('/notifications/read-all'),
+  markRead: (id) => api.patch(`/notifications/${id}/read`),
   dismiss: (id) => api.delete(`/notifications/${id}`),
+};
+
+export const activityAPI = {
+  getAll: (params) => api.get('/activity', { params }),
 };
 
 export const searchAPI = {
   search: (q) => api.get('/search', { params: { q } }),
+};
+
+export const sprintsAPI = {
+  getAll: (projectId) => api.get('/sprints', { params: { projectId } }),
+  create: (data) => api.post('/sprints', data),
 };

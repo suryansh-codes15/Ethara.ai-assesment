@@ -8,6 +8,7 @@ import NotificationsPanel from './NotificationsPanel';
 const NAV_ITEMS = [
   { to: '/dashboard', icon: '⬡', label: 'Dashboard', shortcut: 'D' },
   { to: '/projects', icon: '◈', label: 'Projects', shortcut: 'P' },
+  { to: '/sprints', icon: '⎍', label: 'Sprints', shortcut: 'R' },
   { to: '/profile', icon: '⚙', label: 'Settings', shortcut: 'S' },
 ];
 
@@ -53,14 +54,29 @@ export default function Layout() {
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      const key = e.key.toLowerCase();
+      const modifier = e.metaKey || e.ctrlKey;
+
+      if (modifier && key === 'k') {
         e.preventDefault();
-        setCmdOpen(true);
+        setCmdOpen(prev => !prev);
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'd') { e.preventDefault(); navigate('/dashboard'); }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'p') { e.preventDefault(); navigate('/projects'); }
-      if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); navigate('/profile'); }
-      if (e.key === 'Escape') { setCmdOpen(false); setNotifOpen(false); setMobileOpen(false); }
+      
+      if (modifier && (key === 'd' || key === 'p' || key === 's' || key === 'r')) {
+        e.preventDefault();
+        setCmdOpen(false);
+        setNotifOpen(false);
+        if (key === 'd') navigate('/dashboard');
+        if (key === 'p') navigate('/projects');
+        if (key === 's') navigate('/profile');
+        if (key === 'r') navigate('/sprints');
+      }
+
+      if (e.key === 'Escape') {
+        setCmdOpen(false);
+        setNotifOpen(false);
+        setMobileOpen(false);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -135,6 +151,16 @@ export default function Layout() {
         {NAV_ITEMS.map(item => (
           <NavItem key={item.to} {...item} collapsed={collapsed && !forMobile} />
         ))}
+        {isAdmin && (
+          <button
+            onClick={() => setCmdOpen(true)}
+            className="nav-item w-full text-left mt-2 border border-dashed border-[var(--border)] hover:border-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/5"
+            title="Quick Create (⌘K)"
+          >
+            <span className="text-base w-5 text-center flex-shrink-0 text-[var(--brand-primary)]">+</span>
+            {(!collapsed || forMobile) && <span className="flex-1 font-semibold text-[var(--brand-primary)]">Quick Create</span>}
+          </button>
+        )}
       </nav>
 
       {/* Bottom section */}
@@ -142,11 +168,16 @@ export default function Layout() {
         {/* Notifications bell */}
         <button
           onClick={() => setNotifOpen(true)}
-          className="nav-item w-full text-left"
+          className="nav-item w-full text-left relative"
           title="Notifications"
         >
           <span className="text-base w-5 text-center flex-shrink-0">🔔</span>
           {(!collapsed || forMobile) && <span className="flex-1">Notifications</span>}
+          {user?.unreadCount > 0 && (
+            <span className="absolute left-6 top-2 w-4 h-4 bg-red-500 rounded-full text-[8px] flex items-center justify-center text-white border-2 border-[var(--surface-1)]">
+              {user.unreadCount}
+            </span>
+          )}
         </button>
 
         {/* User card */}

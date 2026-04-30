@@ -13,7 +13,8 @@ const generateToken = (id) => {
 // @access  Public
 const signup = async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email: rawEmail, password, role } = req.body;
+    const email = rawEmail.toLowerCase().trim();
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -52,10 +53,11 @@ const signup = async (req, res, next) => {
 // @access  Public
 const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { email: rawEmail, password } = req.body;
+    if (!rawEmail || !password) {
       return res.status(400).json({ success: false, message: 'Please provide email and password.' });
     }
+    const email = rawEmail.toLowerCase().trim();
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -91,8 +93,21 @@ const login = async (req, res, next) => {
 // @desc    Get current user
 // @route   GET /api/auth/me
 // @access  Private
-const getMe = async (req, res) => {
-  res.json({ success: true, user: req.user });
+const getMe = async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, name: true, email: true, role: true, avatar: true }
+    });
+
+    const unreadCount = await prisma.notification.count({
+      where: { userId: req.user.id, read: false }
+    });
+
+    res.json({ success: true, user: { ...user, _id: user.id, unreadCount } });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // @desc    Get all users (admin only)

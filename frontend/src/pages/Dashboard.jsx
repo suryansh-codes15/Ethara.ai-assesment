@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { dashboardAPI, analyticsAPI, tasksAPI } from '../api';
+import { dashboardAPI, analyticsAPI, tasksAPI, activityAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
 import CountUp from '../components/CountUp';
 import ActivityHeatmap from '../components/ActivityHeatmap';
 import SkeletonLoader from '../components/SkeletonLoader';
 import TaskCard from '../components/TaskCard';
 import TaskSlideOver from '../components/TaskSlideOver';
+import ActivityFeed from '../components/ActivityFeed';
 import { format } from 'date-fns';
 
 const greeting = () => {
@@ -45,6 +46,7 @@ export default function Dashboard() {
   const [velocity, setVelocity] = useState([]);
   const [heatmap, setHeatmap] = useState({});
   const [leaderboard, setLeaderboard] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [clock, setClock] = useState(new Date());
@@ -62,6 +64,7 @@ export default function Dashboard() {
         analyticsAPI.getHeatmap().catch(() => ({ data: { heatmap: {} } })),
         analyticsAPI.getVelocity().catch(() => ({ data: { velocity: [] } })),
         analyticsAPI.getLeaderboard().catch(() => ({ data: { leaderboard: [] } })),
+        activityAPI.getAll({ limit: 10 }).catch(() => ({ data: { activities: [] } })),
       ]);
       setStats(dashRes.data.stats);
       setRecentTasks(dashRes.data.recentTasks);
@@ -72,6 +75,7 @@ export default function Dashboard() {
         completed: d.completed,
       })));
       setLeaderboard(lbRes.data.leaderboard || []);
+      setActivities(activityRes.data.activities || []);
     } catch { /* silent */ }
     finally { setLoading(false); }
   };
@@ -239,35 +243,11 @@ export default function Dashboard() {
           <ActivityHeatmap data={heatmap} />
         </motion.div>
 
-        {/* Leaderboard */}
+        {/* Recent Activity */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="card p-5">
-          <h2 className="text-sm font-semibold text-[var(--text-secondary)] mb-1">Leaderboard</h2>
-          <p className="text-xs text-[var(--text-muted)] mb-4">Most tasks done this week</p>
-          {leaderboard.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-[var(--text-muted)] dot-grid rounded-xl h-32">
-              <p className="text-xl mb-1">🏆</p>
-              <p className="text-xs">No activity yet</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {leaderboard.slice(0, 6).map((member, i) => (
-                <div key={member.id} className="flex items-center gap-3 py-1.5">
-                  <span className="text-sm font-bold w-4 text-center"
-                    style={{ color: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#b45309' : 'var(--text-muted)' }}>
-                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
-                  </span>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-                    {member.name?.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">{member.name}</p>
-                  </div>
-                  <span className="text-sm font-bold text-indigo-400">{member.completed}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <h2 className="text-sm font-semibold text-[var(--text-secondary)] mb-1">Recent Activity</h2>
+          <p className="text-xs text-[var(--text-muted)] mb-4">Latest updates across projects</p>
+          <ActivityFeed activities={activities} />
         </motion.div>
       </div>
 

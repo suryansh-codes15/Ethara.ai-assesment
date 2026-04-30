@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const { getNotifications, markRead, markAllRead, deleteNotification } = require('../controllers/notificationController');
 const { protect } = require('../middleware/auth');
-const { getNotifications, markAllRead, dismissNotification } = require('../controllers/notificationController');
 
 router.use(protect);
+
 router.get('/', getNotifications);
 router.post('/read-all', markAllRead);
-router.delete('/:id', dismissNotification);
+router.patch('/:id/read', markRead);
+router.delete('/:id', deleteNotification);
 
 module.exports = router;

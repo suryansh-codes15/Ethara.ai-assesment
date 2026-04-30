@@ -25,6 +25,7 @@ model User {
 
   comments      Comment[]
   notifications Notification[]
+  activityLogs  ActivityLog[]
 }
 
 model Project {
@@ -68,6 +69,8 @@ model Task {
   sprintId String?
   sprint   Sprint? @relation(fields: [sprintId], references: [id])
 
+  order    Int     @default(0)
+
   subtasks Subtask[]
   comments Comment[]
 }
@@ -102,6 +105,18 @@ model Notification {
   read      Boolean  @default(false)
   link      String   @default("")
   createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  action     String
+  entityType String
+  entityId   String
+  details    String   @default("")
+  createdAt  DateTime @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id])

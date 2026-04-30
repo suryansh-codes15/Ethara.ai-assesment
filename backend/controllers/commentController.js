@@ -1,73 +1,67 @@
 const prisma = require('../config/db');
+const { createActivity, createNotification } = require('../services/eventService');
 
-// POST /api/tasks/:id/comments
 const addComment = async (req, res, next) => {
   try {
-    const { text } = req.body;
-    if (!text?.trim()) {
-      return res.status(400).json({ success: false, message: 'Comment text is required.' });
-    }
+    const { text, taskId } = req.body;
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
 
     const comment = await prisma.comment.create({
-      data: {
-        text: text.trim(),
-        taskId: req.params.id,
-        userId: req.user.id,
-      },
-      include: {
-        user: { select: { id: true, name: true, email: true, avatar: true } },
-      },
+      data: { text, taskId, userId: req.user.id },
+      include: { user: { select: { name: true, avatar: true } } }
     });
 
-    res.status(201).json({
-      success: true,
-      comment: { ...comment, _id: comment.id, user: { ...comment.user, _id: comment.user.id } },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// GET /api/tasks/:id/comments
-const getComments = async (req, res, next) => {
-  try {
-    const comments = await prisma.comment.findMany({
-      where: { taskId: req.params.id },
-      orderBy: { createdAt: 'asc' },
-      include: {
-        user: { select: { id: true, name: true, email: true, avatar: true } },
-      },
-    });
-
-    res.json({
-      success: true,
-      comments: comments.map(c => ({
-        ...c,
-        _id: c.id,
-        user: { ...c.user, _id: c.user.id },
-      })),
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// POST /api/tasks/:id/subtasks
-const addSubtask = async (req, res, next) => {
-  try {
-    const { title } = req.body;
-    if (!title?.trim()) {
-      return res.status(400).json({ success: false, message: 'Subtask title is required.' });
+    // Notify assignee if someone else comments
+    if (task.assignedToId && task.assignedToId !== req.user.id) {
+      await createNotification({
+        userId: task.assignedToId,
+        type: 'comment',
+        message: `${req.user.name} commented on your task: ${task.title}`,
+        link: `/projects/${task.projectId}?task=${task.id}`
+      });
     }
 
-    const count = await prisma.subtask.count({ where: { taskId: req.params.id } });
+    res.status(201).json({ success: true, comment: { ...comment, _id: comment.id } });
+  } catch (error) {
+    next(error);
+  }
+};
 
+const getComments = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+    const comments = await prisma.comment.findMany({
+      where: { taskId },
+      include: { user: { select: { name: true, avatar: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, comments: comments.map(c => ({ ...c, _id: c.id })) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSubtasks = async (req, res, next) => {
+  try {
+    const { id: taskId } = req.params;
+    const subtasks = await prisma.subtask.findMany({
+      where: { taskId },
+      orderBy: { order: 'asc' }
+    });
+    res.json({ success: true, subtasks: subtasks.map(s => ({ ...s, _id: s.id })) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const addSubtask = async (req, res, next) => {
+  try {
+    const { id: taskId } = req.params;
+    const { title } = req.body;
+    
     const subtask = await prisma.subtask.create({
-      data: {
-        title: title.trim(),
-        taskId: req.params.id,
-        order: count,
-      },
+      data: { title, taskId, order: 0 }
     });
 
     res.status(201).json({ success: true, subtask: { ...subtask, _id: subtask.id } });
@@ -76,17 +70,15 @@ const addSubtask = async (req, res, next) => {
   }
 };
 
-// PATCH /api/tasks/:id/subtasks/:sid
 const toggleSubtask = async (req, res, next) => {
   try {
-    const subtask = await prisma.subtask.findUnique({ where: { id: req.params.sid } });
-    if (!subtask) {
-      return res.status(404).json({ success: false, message: 'Subtask not found.' });
-    }
+    const { sid } = req.params;
+    const subtask = await prisma.subtask.findUnique({ where: { id: sid } });
+    if (!subtask) return res.status(404).json({ success: false, message: 'Subtask not found' });
 
     const updated = await prisma.subtask.update({
-      where: { id: req.params.sid },
-      data: { done: !subtask.done },
+      where: { id: sid },
+      data: { done: !subtask.done }
     });
 
     res.json({ success: true, subtask: { ...updated, _id: updated.id } });
@@ -95,28 +87,14 @@ const toggleSubtask = async (req, res, next) => {
   }
 };
 
-// DELETE /api/tasks/:id/subtasks/:sid
 const deleteSubtask = async (req, res, next) => {
   try {
-    await prisma.subtask.delete({ where: { id: req.params.sid } });
-    res.json({ success: true, message: 'Subtask deleted.' });
-  } catch (error) {
-    if (error.code === 'P2025') return res.status(404).json({ success: false, message: 'Subtask not found.' });
-    next(error);
-  }
-};
-
-// GET /api/tasks/:id/subtasks
-const getSubtasks = async (req, res, next) => {
-  try {
-    const subtasks = await prisma.subtask.findMany({
-      where: { taskId: req.params.id },
-      orderBy: { order: 'asc' },
-    });
-    res.json({ success: true, subtasks: subtasks.map(s => ({ ...s, _id: s.id })) });
+    const { sid } = req.params;
+    await prisma.subtask.delete({ where: { id: sid } });
+    res.json({ success: true, message: 'Subtask deleted' });
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = { addComment, getComments, addSubtask, toggleSubtask, deleteSubtask, getSubtasks };
+module.exports = { addComment, getComments, getSubtasks, addSubtask, toggleSubtask, deleteSubtask };

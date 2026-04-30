@@ -5,10 +5,13 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import confetti from 'canvas-confetti';
 import { projectsAPI, tasksAPI, authAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
+import { toast } from 'react-hot-toast';
 import Modal from '../components/Modal';
 import TaskCard from '../components/TaskCard';
 import TaskSlideOver from '../components/TaskSlideOver';
 import SkeletonLoader from '../components/SkeletonLoader';
+import RichTextEditor from '../components/RichTextEditor';
 import { format } from 'date-fns';
 
 const STATUSES = ['todo', 'in-progress', 'done'];
@@ -25,6 +28,7 @@ const fireConfetti = () => {
 export default function ProjectView() {
   const { id } = useParams();
   const { isAdmin, user } = useAuth();
+  const socket = useSocket();
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
@@ -59,6 +63,12 @@ export default function ProjectView() {
       ]);
       setProject(projRes.data.project);
       setTasks(tasksRes.data.tasks);
+      
+      // Auto-select task from URL
+      const params = new URLSearchParams(window.location.search);
+      const taskId = params.get('task');
+      if (taskId) setSelectedTaskId(taskId);
+
       if (isAdmin) {
         const usersRes = await authAPI.getAllUsers();
         setAllUsers(usersRes.data.users);
@@ -67,7 +77,32 @@ export default function ProjectView() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchAll(); }, [id]);
+  useEffect(() => { 
+    fetchAll(); 
+    if (socket && id) {
+      socket.emit('join-project', id);
+      
+      socket.on('task-created', (newTask) => {
+        setTasks(ts => [newTask, ...ts]);
+        toast.success(`New task: ${newTask.title}`, { icon: '📝', duration: 3000 });
+      });
+
+      socket.on('task-updated', (updatedTask) => {
+        setTasks(ts => ts.map(t => t._id === updatedTask._id ? updatedTask : t));
+      });
+
+      socket.on('task-deleted', (taskId) => {
+        setTasks(ts => ts.filter(t => t._id !== taskId));
+      });
+
+      return () => {
+        socket.emit('leave-project', id);
+        socket.off('task-created');
+        socket.off('task-updated');
+        socket.off('task-deleted');
+      };
+    }
+  }, [id, socket]);
 
   const openCreateTask = (status = 'todo') => {
     setEditTask(null);
@@ -136,17 +171,53 @@ export default function ProjectView() {
     const { source, destination, draggableId } = result;
     if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) return;
 
-    const newStatus = destination.droppableId;
-    const task = tasks.find(t => t._id === draggableId);
-    if (!task) return;
+    const sourceStatus = source.droppableId;
+    const destStatus = destination.droppableId;
 
-    // Optimistic update
-    setTasks(ts => ts.map(t => t._id === draggableId ? { ...t, status: newStatus } : t));
+    // Create a copy of all tasks
+    const newTasks = [...tasks];
+    
+    // Separate tasks by status
+    const colTasks = {
+      todo: tasks.filter(t => t.status === 'todo').sort((a, b) => (a.order || 0) - (b.order || 0)),
+      'in-progress': tasks.filter(t => t.status === 'in-progress').sort((a, b) => (a.order || 0) - (b.order || 0)),
+      done: tasks.filter(t => t.status === 'done').sort((a, b) => (a.order || 0) - (b.order || 0)),
+    };
+
+    // Remove from source
+    const [movedTask] = colTasks[sourceStatus].splice(source.index, 1);
+    movedTask.status = destStatus;
+    
+    // Insert into destination
+    colTasks[destStatus].splice(destination.index, 0, movedTask);
+
+    // Re-calculate orders for affected columns
+    const updatedStatusTasks = [];
+    
+    // Just update the moved task and its neighbors in the dest column for simplicity in API
+    // Or update everything in both columns to be safe
+    [sourceStatus, destStatus].forEach(status => {
+      colTasks[status].forEach((t, idx) => {
+        t.order = idx;
+        updatedStatusTasks.push({ id: t._id, status: t.status, order: t.order });
+      });
+    });
+
+    // Optimistic Update
+    setTasks(prev => {
+      const filtered = prev.filter(t => t._id !== movedTask._id);
+      // We need to rebuild the full list with new statuses and orders
+      // For simplicity, let's just use the logic from colTasks
+      return Object.values(colTasks).flat();
+    });
 
     try {
-      await tasksAPI.update(draggableId, { status: newStatus });
-      if (newStatus === 'done') fireConfetti();
-    } catch { fetchAll(); }
+      await tasksAPI.reorder(updatedStatusTasks);
+      if (destStatus === 'done' && sourceStatus !== 'done') fireConfetti();
+    } catch {
+      fetchAll();
+      toast.error('Failed to save task order');
+    }
   }, [tasks]);
 
   const handleAddMember = async () => {
@@ -418,8 +489,11 @@ export default function ProjectView() {
           </div>
           <div>
             <label className="label">Description</label>
-            <textarea className="input resize-none" rows={3} placeholder="What needs to be done?"
-              value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} />
+            <RichTextEditor 
+              content={taskForm.description} 
+              onChange={(html) => setTaskForm({ ...taskForm, description: html })} 
+              placeholder="What needs to be done? Use / for commands..."
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

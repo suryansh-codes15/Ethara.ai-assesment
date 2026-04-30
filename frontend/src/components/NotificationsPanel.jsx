@@ -115,7 +115,13 @@ export default function NotificationsPanel({ open, onClose }) {
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className="flex gap-3 px-4 py-3.5 hover:bg-white/[0.02] transition-colors relative"
+                      className="flex gap-3 px-4 py-3.5 hover:bg-white/[0.02] transition-colors relative cursor-pointer group"
+                      onClick={async () => {
+                        if (!notif.read) {
+                          await notificationsAPI.markRead(notif._id);
+                          setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, read: true } : n));
+                        }
+                      }}
                     >
                       {!notif.read && (
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-indigo-500 rounded-r-full" />
@@ -133,7 +139,7 @@ export default function NotificationsPanel({ open, onClose }) {
                         </p>
                       </div>
                       <button
-                        onClick={() => dismiss(notif._id)}
+                        onClick={(e) => { e.stopPropagation(); dismiss(notif._id); }}
                         className="btn-ghost p-1 text-[var(--text-muted)] hover:text-red-400 flex-shrink-0 opacity-0 group-hover:opacity-100 text-xs"
                       >
                         ✕
