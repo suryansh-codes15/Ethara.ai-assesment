@@ -30,7 +30,7 @@ const fireConfetti = () => {
 export default function ProjectView() {
   const { id } = useParams();
   const { isAdmin, user } = useAuth();
-  const socket = useSocket();
+  const { socket } = useSocket();
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
