@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import confetti from 'canvas-confetti';
-import { projectsAPI, tasksAPI, authAPI } from '../api';
+import api, { projectsAPI, tasksAPI, authAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { toast } from 'react-hot-toast';
@@ -77,7 +77,9 @@ export default function ProjectView() {
         const usersRes = await authAPI.getAllUsers();
         setAllUsers(usersRes.data.users);
       }
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error("FetchAll failed:", err);
+    }
     finally { setLoading(false); }
   };
 
@@ -139,7 +141,9 @@ export default function ProjectView() {
       }
       setTaskModal(false);
       fetchAll();
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error("Task submit failed:", err);
+    }
     finally { setSubmitting(false); }
   };
 
@@ -150,7 +154,9 @@ export default function ProjectView() {
       setInlineTitle('');
       setInlineCol(null);
       fetchAll();
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error("Inline add failed:", err);
+    }
   };
 
   const handleDeleteTask = async (taskId) => {
@@ -262,7 +268,7 @@ export default function ProjectView() {
   });
 
   const tasksByStatus = (status) => filteredTasks.filter(t => t.status === status);
-  const nonMembers = allUsers.filter(u => !project?.members?.some(m => m._id === u._id));
+  const nonMembers = (allUsers || []).filter(u => !project?.members?.some(m => m._id === u._id || m.id === u.id));
   const accentColor = project?.color || '#6366f1';
   const totalTasks = tasks.length;
   const doneTasks = tasks.filter(t => t.status === 'done').length;
