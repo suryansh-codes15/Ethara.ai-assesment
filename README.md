@@ -1,20 +1,28 @@
-# 🚀 TaskFlow — Team Task Manager
+# 🚀 Obsidian Pro — Enterprise Task Platform
 
-A production-ready full-stack web application for managing team projects and tasks with role-based access control.
+The "Obsidian Pro" edition of TaskFlow is a high-performance, premium SaaS platform for team task management. It features a stunning glass-morphism UI, real-time analytics, and enterprise-grade security.
 
 **Live Demo**: [your-url.railway.app](https://your-url.railway.app)  
 **API Docs**: [your-backend.railway.app](https://your-backend.railway.app)
 
 ---
 
-## 📸 Features
+## 🎨 Design System: "Obsidian Pro"
+- **Glassmorphism**: Deep blurs and translucent surfaces for a premium feel.
+- **Layered Depth**: Distinct surface levels with subtle glow effects.
+- **Micro-animations**: Smooth transitions using Framer Motion.
+- **Dynamic Themes**: Deep indigo/violet color palette tailored for professional focus.
 
-- ✅ **JWT Authentication** — Secure signup/login with password hashing
-- 👥 **Role-Based Access Control** — Admin vs Member permissions
-- 📁 **Project Management** — Create projects, add/remove members
-- ✅ **Task Management** — Kanban board with drag-through status updates
-- 📊 **Dashboard** — Real-time stats, charts, overdue tracking
-- 🔒 **Security** — Protected routes, middleware validation, Joi schemas
+---
+
+## 📸 Key Features
+
+- 📊 **Executive Dashboard** — High-impact Recharts analytics and activity heatmaps.
+- 📋 **Premium Kanban** — Drag-and-drop workflow with `@hello-pangea/dnd`.
+- 👥 **Role-Based Control** — Secure Admin vs Member permissions via JWT.
+- 📁 **Project Hub** — Manage project health, accent colors, and team members.
+- 🔒 **Security Hardened** — Helmet, Morgan, and Rate Limiting integrated.
+- ⚡ **Optimized Data Layer** — Prisma ORM with SQLite for fast, type-safe queries.
 
 ---
 
@@ -22,9 +30,9 @@ A production-ready full-stack web application for managing team projects and tas
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 18, Tailwind CSS, Recharts, React Router |
+| Frontend | React 18, Framer Motion, Recharts, Tailwind CSS |
 | Backend | Node.js, Express.js |
-| Database | MongoDB with Mongoose ODM |
+| Database | SQLite with Prisma ORM |
 | Auth | JWT (JSON Web Tokens) + bcrypt |
 | Deployment | Railway |
 
@@ -35,116 +43,17 @@ A production-ready full-stack web application for managing team projects and tas
 ```
 taskmanager/
 ├── backend/
-│   ├── config/
-│   │   └── db.js                # MongoDB connection
-│   ├── controllers/
-│   │   ├── authController.js    # Auth logic
-│   │   ├── projectController.js # Project CRUD
-│   │   ├── taskController.js    # Task CRUD
-│   │   └── dashboardController.js
-│   ├── middleware/
-│   │   ├── auth.js              # JWT verify + role check
-│   │   ├── validate.js          # Joi validation schemas
-│   │   └── errorHandler.js      # Global error handler
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Project.js
-│   │   └── Task.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── projects.js
-│   │   ├── tasks.js
-│   │   └── dashboard.js
-│   ├── server.js
-│   ├── .env.example
-│   └── railway.toml
-│
+│   ├── prisma/             # Database schema and migrations
+│   ├── controllers/        # Business logic for all routes
+│   ├── middleware/         # Auth, validation, and error handling
+│   ├── routes/             # API endpoint definitions
+│   └── server.js           # Entry point
 └── frontend/
     ├── src/
-    │   ├── api/
-    │   │   ├── axios.js         # Axios config + interceptors
-    │   │   └── index.js         # API service methods
-    │   ├── components/
-    │   │   ├── Layout.jsx       # Sidebar + navigation
-    │   │   ├── Modal.jsx
-    │   │   ├── TaskCard.jsx
-    │   │   ├── Toast.jsx
-    │   │   └── Loader.jsx
-    │   ├── context/
-    │   │   └── AuthContext.jsx  # Global auth state
-    │   └── pages/
-    │       ├── Login.jsx
-    │       ├── Signup.jsx
-    │       ├── Dashboard.jsx    # Stats + charts
-    │       ├── Projects.jsx     # Project list
-    │       └── ProjectView.jsx  # Kanban board
-    ├── .env.example
-    └── railway.toml
-```
-
----
-
-## 🔌 API Reference
-
-### Auth
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| POST | `/api/auth/signup` | Public | Register user |
-| POST | `/api/auth/login` | Public | Login |
-| GET | `/api/auth/me` | Private | Current user |
-| GET | `/api/auth/users` | Admin | All users |
-
-### Projects
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/api/projects` | Private | List projects |
-| POST | `/api/projects` | Admin | Create project |
-| GET | `/api/projects/:id` | Private | Get project |
-| PUT | `/api/projects/:id` | Admin | Update project |
-| DELETE | `/api/projects/:id` | Admin | Delete project |
-| POST | `/api/projects/:id/add-member` | Admin | Add member |
-| POST | `/api/projects/:id/remove-member` | Admin | Remove member |
-
-### Tasks
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/api/tasks` | Private | List tasks (filtered) |
-| POST | `/api/tasks` | Admin | Create task |
-| GET | `/api/tasks/:id` | Private | Get task |
-| PATCH | `/api/tasks/:id` | Private* | Update task |
-| DELETE | `/api/tasks/:id` | Admin | Delete task |
-
-*Members can only update status of their own assigned tasks
-
-### Dashboard
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| GET | `/api/dashboard` | Private | Stats + recent tasks |
-
----
-
-## 🛠️ Local Development
-
-### Prerequisites
-- Node.js 18+
-- MongoDB Atlas account (or local MongoDB)
-
-### Backend Setup
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Fill in your MONGODB_URI and JWT_SECRET in .env
-npm run dev
-```
-
-### Frontend Setup
-```bash
-cd frontend
-npm install
-cp .env.example .env
-# Set VITE_API_URL=http://localhost:5000
-npm run dev
+    │   ├── api/            # Axios interceptors and services
+    │   ├── components/     # High-fidelity UI components
+    │   ├── context/        # Auth and state management
+    │   └── pages/          # Application views
 ```
 
 ---
@@ -152,66 +61,47 @@ npm run dev
 ## ☁️ Railway Deployment
 
 ### Deploy Backend
-1. Create a new Railway project
-2. Add a service from GitHub repo (select `backend/` folder)
+1. Create a new Railway project.
+2. Add a service from GitHub (select the `backend/` folder).
 3. Set environment variables:
    ```
-   MONGODB_URI=mongodb+srv://...
+   DATABASE_URL="file:./dev.db"
    JWT_SECRET=your_secret_key
    NODE_ENV=production
    FRONTEND_URL=https://your-frontend.railway.app
    ```
-4. Railway auto-detects Node.js and deploys
+4. Railway auto-detects Node.js and deploys.
+   > [!NOTE]
+   > SQLite data resets on every deployment. For persistent production data, use a Railway PostgreSQL service.
 
 ### Deploy Frontend
-1. Add another service in same Railway project (select `frontend/` folder)
+1. Add another service (select the `frontend/` folder).
 2. Set environment variable:
    ```
    VITE_API_URL=https://your-backend.railway.app
    ```
-3. Deploy — Railway builds with `npm run build`
 
 ---
 
-## 🔐 Role-Based Access
+## 🛠️ Local Development
 
-| Feature | Admin | Member |
-|---------|-------|--------|
-| Create/delete projects | ✅ | ❌ |
-| Add/remove project members | ✅ | ❌ |
-| Create/delete tasks | ✅ | ❌ |
-| Edit any task | ✅ | ❌ |
-| Update own task status | ✅ | ✅ |
-| View own projects & tasks | ✅ | ✅ |
-| View all projects & tasks | ✅ | ❌ |
-| View all users | ✅ | ❌ |
-| View dashboard stats | ✅ | ✅ (own data) |
+1. **Install dependencies**:
+   ```bash
+   cd backend && npm install
+   cd ../frontend && npm install
+   ```
 
----
+2. **Setup Database**:
+   ```bash
+   cd backend
+   npx prisma db push
+   npx prisma generate
+   ```
 
-## 📊 Data Models
-
-```javascript
-// User
-{ name, email, password (hashed), role: 'admin'|'member' }
-
-// Project  
-{ name, description, createdBy (User), members [User], status }
-
-// Task
-{ title, description, project (Project), assignedTo (User),
-  createdBy (User), status: 'todo'|'in-progress'|'done',
-  priority: 'low'|'medium'|'high', dueDate }
-```
-
----
-
-## 🎥 Demo Video
-
-[Watch the 3-minute demo →](https://your-video-link.com)
-
----
-
-## 👤 Author
-
-Built with ❤️ for the Full-Stack Assignment.
+3. **Run Dev Servers**:
+   ```bash
+   # Backend (port 5000)
+   npm run dev
+   # Frontend (port 3000)
+   npm run dev
+   ```
