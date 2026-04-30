@@ -13,6 +13,7 @@ export default function ChatPanel({ projectId, open, onClose }) {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [isConnected, setIsConnected] = useState(socket?.connected || false);
   const scrollRef = useRef(null);
 
   const fetchMessages = async () => {
@@ -30,12 +31,22 @@ export default function ChatPanel({ projectId, open, onClose }) {
 
   useEffect(() => {
     if (socket) {
+      const onConnect = () => setIsConnected(true);
+      const onDisconnect = () => setIsConnected(false);
+      
+      socket.on('connect', onConnect);
+      socket.on('disconnect', onDisconnect);
+      
       socket.on('new-chat-message', (message) => {
         if (message.projectId === projectId) {
           setMessages(prev => [...prev, message]);
         }
       });
-      return () => socket.off('new-chat-message');
+      return () => {
+        socket.off('connect', onConnect);
+        socket.off('disconnect', onDisconnect);
+        socket.off('new-chat-message');
+      };
     }
   }, [socket, projectId]);
 
@@ -93,8 +104,10 @@ export default function ChatPanel({ projectId, open, onClose }) {
                 <div>
                   <h2 className="font-bold text-[var(--text-primary)] text-base tracking-tight">Project Hub</h2>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Live Team Chat</p>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                    <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">
+                      {isConnected ? 'Live Team Chat' : 'Connecting...'}
+                    </p>
                   </div>
                 </div>
               </div>

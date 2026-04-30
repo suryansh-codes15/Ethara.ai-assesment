@@ -27,10 +27,15 @@ export default function AIAssistant({ projectId, projectName, projectDescription
   const handleAcceptAll = async () => {
     try {
       for (const task of suggestions) {
+        const { daysFromNow, ...taskData } = task;
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + (daysFromNow || 1));
+
         await api.post(`/tasks`, {
-          ...task,
+          ...taskData,
           project: projectId,
-          status: "todo"
+          status: "todo",
+          dueDate: dueDate.toISOString()
         });
       }
       onTasksGenerated();
