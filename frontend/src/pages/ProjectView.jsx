@@ -136,11 +136,18 @@ export default function ProjectView() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const payload = { ...taskForm, project: id, assignedTo: taskForm.assignedTo || null, dueDate: taskForm.dueDate || null };
+      const payload = { 
+        ...taskForm, 
+        assignedTo: taskForm.assignedTo || null, 
+        dueDate: taskForm.dueDate || null 
+      };
+
       if (editTask) {
-        await tasksAPI.update(editTask._id, payload);
+        // Remove 'project' from update payload to satisfy Joi validation
+        const { project, ...updatePayload } = payload;
+        await tasksAPI.update(editTask._id, updatePayload);
       } else {
-        await tasksAPI.create(payload);
+        await tasksAPI.create({ ...payload, project: id });
       }
       setTaskModal(false);
       fetchAll();

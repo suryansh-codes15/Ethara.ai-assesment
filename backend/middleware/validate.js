@@ -53,6 +53,7 @@ const updateTaskSchema = Joi.object({
   status: Joi.string().valid('todo', 'in-progress', 'done').optional(),
   priority: Joi.string().valid('low', 'medium', 'high').optional(),
   dueDate: Joi.date().optional().allow(null),
+  project: Joi.string().optional(),
   tags: Joi.string().max(200).optional().allow(''),
 });
 
