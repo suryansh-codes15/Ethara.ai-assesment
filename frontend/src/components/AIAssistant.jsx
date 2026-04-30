@@ -26,11 +26,10 @@ export default function AIAssistant({ projectId, projectName, projectDescription
 
   const handleAcceptAll = async () => {
     try {
-      // Logic to add all tasks to backend
       for (const task of suggestions) {
         await api.post(`/tasks`, {
           ...task,
-          projectId,
+          project: projectId,
           status: "todo"
         });
       }
@@ -55,36 +54,74 @@ export default function AIAssistant({ projectId, projectName, projectDescription
         </button>
       ) : (
         <motion.div
-          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+          initial={{ opacity: 0, y: 12, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="absolute top-12 right-0 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 z-50"
+          exit={{ opacity: 0, y: 12, scale: 0.98 }}
+          className="absolute top-14 right-0 w-[420px] bg-[var(--surface-1)] rounded-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.4)] border border-[var(--border)] overflow-hidden z-[100]"
         >
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold flex items-center gap-2">
-              <Wand2 className="w-4 h-4 text-indigo-500" />
-              AI Suggestions
-            </h3>
-            <button onClick={() => setSuggestions(null)} className="text-gray-400 hover:text-gray-600">
-              <Plus className="w-4 h-4 rotate-45" />
+          {/* Header */}
+          <div className="px-6 py-5 border-b border-[var(--border)] bg-gradient-to-r from-indigo-500/10 to-purple-500/10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-[var(--text-primary)] text-base">AI Strategy</h3>
+                <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">Recommended Actions</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setSuggestions(null)} 
+              className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
+            >
+              <Plus className="w-4 h-4 rotate-45 text-[var(--text-muted)]" />
             </button>
           </div>
           
-          <div className="space-y-3 max-h-60 overflow-y-auto mb-4 pr-2 custom-scrollbar">
+          {/* List */}
+          <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
             {suggestions.map((task, i) => (
-              <div key={i} className="p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
-                <p className="text-sm font-semibold">{task.title}</p>
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</p>
-              </div>
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="group p-4 bg-white/[0.03] hover:bg-white/[0.05] rounded-2xl border border-white/[0.05] hover:border-indigo-500/30 transition-all cursor-default"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#3b82f6' }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[var(--text-primary)] leading-tight">{task.title}</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
+                      {task.description}
+                    </p>
+                    <div className="flex items-center gap-3 mt-3">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-[var(--text-muted)] uppercase tracking-tighter">
+                        {task.priority} Priority
+                      </span>
+                      <span className="text-[10px] font-bold text-indigo-400/80">
+                        In {task.daysFromNow || 1} day(s)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
 
-          <button
-            onClick={handleAcceptAll}
-            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Accept All Suggestions
-          </button>
+          {/* Footer */}
+          <div className="p-4 bg-white/[0.02] border-t border-[var(--border)]">
+            <button
+              onClick={handleAcceptAll}
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-xl shadow-indigo-500/20 active:scale-[0.98]"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Import all to Backlog
+            </button>
+            <p className="text-[10px] text-center text-[var(--text-muted)] mt-3 font-medium">
+              These tasks will be added to the <b>To Do</b> column automatically.
+            </p>
+          </div>
         </motion.div>
       )}
     </div>

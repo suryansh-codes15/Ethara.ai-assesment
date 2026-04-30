@@ -4,6 +4,7 @@ import { chatAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'react-hot-toast';
 
 export default function ChatPanel({ projectId, open, onClose }) {
   const { user } = useAuth();
@@ -11,6 +12,7 @@ export default function ChatPanel({ projectId, open, onClose }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
   const scrollRef = useRef(null);
 
   const fetchMessages = async () => {
@@ -41,17 +43,22 @@ export default function ChatPanel({ projectId, open, onClose }) {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, open]);
 
   const handleSend = async (e) => {
     e?.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || sending) return;
     const text = newMessage.trim();
     setNewMessage('');
+    setSending(true);
     try {
       await chatAPI.send(projectId, text);
-      // Socket will handle adding to list
-    } catch { /* silent */ }
+    } catch { 
+      toast.error("Failed to send message");
+      setNewMessage(text);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -62,90 +69,114 @@ export default function ChatPanel({ projectId, open, onClose }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] bg-black/20 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-md"
             onClick={onClose}
           />
           <motion.div
-            initial={{ x: 400 }}
-            animate={{ x: 0 }}
-            exit={{ x: 400 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 bottom-0 z-[71] w-full max-w-[380px] flex flex-col overflow-hidden"
+            initial={{ x: 450, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 450, opacity: 0 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed right-0 top-0 bottom-0 z-[71] w-full max-w-[420px] flex flex-col overflow-hidden"
             style={{
               background: 'var(--surface-1)',
               borderLeft: '1px solid var(--border)',
-              boxShadow: '-20px 0 60px rgba(0,0,0,0.3)',
+              boxShadow: '-40px 0 80px rgba(0,0,0,0.5)',
             }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] bg-white/[0.02]">
-              <div className="flex items-center gap-2.5">
-                <span className="text-lg">💬</span>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--border)] bg-white/[0.03]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                  <span className="text-xl">💬</span>
+                </div>
                 <div>
-                  <h2 className="font-bold text-[var(--text-primary)] text-sm">Project Chat</h2>
-                  <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Team Communication</p>
+                  <h2 className="font-bold text-[var(--text-primary)] text-base tracking-tight">Project Hub</h2>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Live Team Chat</p>
+                  </div>
                 </div>
               </div>
-              <button onClick={onClose} className="btn-ghost p-1.5 text-sm">✕</button>
+              <button 
+                onClick={onClose} 
+                className="w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center transition-all text-[var(--text-muted)] hover:text-white"
+              >
+                ✕
+              </button>
             </div>
 
             {/* Messages */}
             <div 
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
+              className="flex-1 overflow-y-auto px-6 py-6 space-y-6 scroll-smooth custom-scrollbar"
             >
               {loading ? (
-                <div className="flex flex-col items-center justify-center h-full opacity-50">
-                  <div className="animate-spin text-2xl mb-2">⏳</div>
-                  <p className="text-xs">Loading messages...</p>
+                <div className="flex flex-col items-center justify-center h-full space-y-4">
+                  <div className="w-10 h-10 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                  <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Syncing Messages...</p>
                 </div>
               ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
-                  <div className="text-4xl mb-3">🎐</div>
-                  <p className="text-sm font-medium">No messages yet</p>
-                  <p className="text-xs">Be the first to say something!</p>
+                <div className="flex flex-col items-center justify-center h-full text-center px-10">
+                  <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-4xl mb-6 grayscale opacity-50">
+                    🎐
+                  </div>
+                  <h3 className="text-sm font-bold text-[var(--text-primary)] mb-2">The chat is quiet</h3>
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed font-medium">
+                    Start the conversation! Every message here is visible to all project members.
+                  </p>
                 </div>
               ) : (
                 messages.map((m, idx) => {
                   const isMe = m.userId === user?.id || m.user?.id === user?.id;
                   const showAvatar = idx === 0 || messages[idx-1].userId !== m.userId;
+                  const showTimestamp = idx === messages.length - 1 || messages[idx+1].userId !== m.userId;
                   
                   return (
-                    <div key={m._id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                    <motion.div 
+                      key={m._id} 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                    >
                       {showAvatar && !isMe && (
-                        <span className="text-[10px] font-bold text-[var(--text-muted)] mb-1 ml-1">{m.user?.name}</span>
+                        <span className="text-[10px] font-bold text-[var(--text-muted)] mb-1.5 ml-11 uppercase tracking-tighter opacity-60">
+                          {m.user?.name}
+                        </span>
                       )}
-                      <div className="flex items-end gap-2 group">
+                      <div className="flex items-end gap-3 max-w-[90%]">
                         {!isMe && showAvatar && (
-                           <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold"
+                           <div className="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold shadow-lg"
                             style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
                             {m.user?.name?.charAt(0)}
                           </div>
                         )}
-                        {!isMe && !showAvatar && <div className="w-6" />}
+                        {!isMe && !showAvatar && <div className="w-8" />}
                         
                         <div 
-                          className={`max-w-[260px] px-3.5 py-2.5 rounded-2xl text-sm relative group transition-all ${
+                          className={`px-4 py-3 rounded-2xl text-[13px] leading-relaxed relative group transition-all duration-200 ${
                             isMe 
-                              ? 'bg-indigo-500 text-white rounded-br-none' 
+                              ? 'bg-indigo-600 text-white rounded-br-none shadow-lg shadow-indigo-500/10' 
                               : 'bg-white/5 text-[var(--text-secondary)] rounded-bl-none border border-white/5'
                           }`}
                         >
                           {m.text}
-                          <span className={`absolute -bottom-4 ${isMe ? 'right-0' : 'left-0'} text-[8px] font-bold text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap`}>
-                            {formatDistanceToNow(new Date(m.createdAt), { addSuffix: true })}
-                          </span>
                         </div>
                       </div>
-                    </div>
+                      {showTimestamp && (
+                        <span className={`text-[9px] font-bold text-[var(--text-muted)] mt-1.5 mx-1 opacity-40 uppercase tracking-tighter`}>
+                          {formatDistanceToNow(new Date(m.createdAt), { addSuffix: true })}
+                        </span>
+                      )}
+                    </motion.div>
                   );
                 })
               )}
             </div>
 
             {/* Input */}
-            <form onSubmit={handleSend} className="p-4 border-t border-[var(--border)] bg-white/[0.01]">
-              <div className="relative">
+            <div className="p-6 border-t border-[var(--border)] bg-white/[0.02]">
+              <form onSubmit={handleSend} className="relative">
                 <textarea
                   rows={1}
                   value={newMessage}
@@ -156,22 +187,28 @@ export default function ChatPanel({ projectId, open, onClose }) {
                       handleSend();
                     }
                   }}
-                  placeholder="Type a message..."
-                  className="input pr-12 text-sm py-3 max-h-32 min-h-[44px] resize-none"
-                  style={{ background: 'var(--surface-3)' }}
+                  placeholder="Share something with the team..."
+                  className="input pr-14 text-sm py-4 max-h-32 min-h-[56px] resize-none border-white/5 bg-white/5 focus:bg-white/[0.08] rounded-2xl transition-all"
                 />
                 <button
                   type="submit"
-                  disabled={!newMessage.trim()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-indigo-500 text-white rounded-xl hover:bg-indigo-400 disabled:opacity-30 disabled:hover:bg-indigo-500 transition-all"
+                  disabled={!newMessage.trim() || sending}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 disabled:opacity-20 transition-all shadow-lg shadow-indigo-500/20 active:scale-90"
                 >
-                  ↑
+                  {sending ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <span className="text-lg">↑</span>}
                 </button>
+              </form>
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-40">
+                  Press Enter to send
+                </p>
+                <div className="flex gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                </div>
               </div>
-              <p className="text-[10px] text-[var(--text-muted)] mt-2 text-center font-medium">
-                Admins and members can see these messages
-              </p>
-            </form>
+            </div>
           </motion.div>
         </>
       )}
