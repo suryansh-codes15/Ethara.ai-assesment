@@ -27,33 +27,35 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit, onCli
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ delay: index * 0.04, duration: 0.25 }}
       onClick={() => onClick?.(task)}
-      className="group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200"
+      className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 glass-premium hover:glow-pulse"
       style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid var(--border)',
-        borderLeft: `3px solid ${borderColor}`,
+        borderLeft: `4px solid ${borderColor}`,
       }}
-      whileHover={{ y: -2, boxShadow: `0 8px 32px rgba(0,0,0,0.3), -2px 0 0 ${borderColor}` }}
+      whileHover={{ 
+        y: -4, 
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        borderColor: borderColor,
+        transition: { duration: 0.2 }
+      }}
     >
-      <div className="p-3.5">
+      <div className="p-4">
         {/* Top row: title + actions */}
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <p className="text-sm font-semibold text-[var(--text-primary)] leading-snug flex-1 line-clamp-2">
+        <div className="flex items-start justify-between gap-3 mb-2.5">
+          <p className="text-[13px] font-bold text-[var(--text-primary)] leading-relaxed flex-1 tracking-tight group-hover:text-indigo-300 transition-colors">
             {task.title}
           </p>
-          {/* Action buttons — visible on hover */}
-          <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
             {canEdit && (
               <button
                 onClick={e => { e.stopPropagation(); onEdit?.(task); }}
-                className="w-6 h-6 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/10 transition-all text-xs"
+                className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-indigo-500/20 transition-all text-[10px]"
                 title="Edit task"
               >✏</button>
             )}
             {isAdmin && (
               <button
                 onClick={e => { e.stopPropagation(); onDelete?.(task._id); }}
-                className="w-6 h-6 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all text-xs"
+                className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/20 transition-all text-[10px]"
                 title="Delete task"
               >✕</button>
             )}
@@ -62,47 +64,49 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit, onCli
 
         {/* Tags / description snippet */}
         {task.description && (
-          <p className="text-xs text-[var(--text-muted)] line-clamp-1 mb-2">{task.description}</p>
+          <div 
+            className="text-[11px] text-[var(--text-muted)] line-clamp-2 mb-3 leading-relaxed font-medium" 
+            dangerouslySetInnerHTML={{ __html: task.description.substring(0, 80) + (task.description.length > 80 ? '...' : '') }} 
+          />
         )}
 
         {/* Footer row */}
-        <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
-          {/* Status badge — clickable */}
-          <button
-            onClick={e => { e.stopPropagation(); if (canEdit) onStatusChange?.(task._id, STATUS_NEXT[task.status]); }}
-            className={`badge-${task.status} text-[10px] transition-all ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'}`}
-            title={canEdit ? `Move to: ${STATUS_LABELS[STATUS_NEXT[task.status]]}` : undefined}
-          >
-            {STATUS_LABELS[task.status]}
-          </button>
-
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.05]">
           <div className="flex items-center gap-2">
-            {/* Due date */}
+            <button
+              onClick={e => { e.stopPropagation(); if (canEdit) onStatusChange?.(task._id, STATUS_NEXT[task.status]); }}
+              className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all ${
+                task.status === 'done' ? 'bg-emerald-500/20 text-emerald-400' :
+                task.status === 'in-progress' ? 'bg-amber-500/20 text-amber-400' :
+                'bg-slate-500/20 text-slate-400'
+              } ${canEdit ? 'hover:scale-105 cursor-pointer' : 'cursor-default'}`}
+            >
+              {task.status.replace('-', ' ')}
+            </button>
+            
             {task.dueDate && (
-              <span className={`text-[10px] font-medium ${isOverdue ? 'text-red-400 animate-overdue' : 'text-[var(--text-muted)]'}`}>
-                {isOverdue ? '⚠ ' : ''}{format(new Date(task.dueDate), 'MMM d')}
-              </span>
-            )}
-
-            {/* Assignee avatar */}
-            {task.assignedTo && (
-              <div
-                title={task.assignedTo.name}
-                className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
-              >
-                {task.assignedTo.name?.charAt(0).toUpperCase()}
+              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md ${isOverdue ? 'bg-red-500/10 text-red-400 animate-pulse' : 'text-[var(--text-muted)]'}`}>
+                 <span className="text-[10px]">🕒</span>
+                 <span className="text-[9px] font-bold uppercase tracking-tighter">
+                  {format(new Date(task.dueDate), 'MMM d')}
+                </span>
               </div>
             )}
           </div>
+
+          {task.assignedTo && (
+            <div className="relative group/avatar">
+              <div
+                title={task.assignedTo.name}
+                className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px] font-black shadow-lg ring-2 ring-white/5 group-hover/avatar:ring-indigo-500/50 transition-all"
+                style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}
+              >
+                {task.assignedTo.name?.charAt(0).toUpperCase()}
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Priority indicator glow at top */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[1px] opacity-40"
-        style={{ background: `linear-gradient(90deg, ${borderColor}80, transparent)` }}
-      />
     </motion.div>
   );
 }

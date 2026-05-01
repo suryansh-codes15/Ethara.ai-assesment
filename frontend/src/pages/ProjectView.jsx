@@ -305,335 +305,351 @@ export default function ProjectView() {
   );
 
   return (
-    <div className="space-y-5">
-      {/* Breadcrumb + Header */}
-      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-        <Link to="/projects" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">
-          ← Projects
-        </Link>
-        <div className="flex items-start justify-between mt-2 gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full" style={{ background: accentColor, boxShadow: `0 0 8px ${accentColor}` }} />
-              <h1 className="text-2xl font-bold text-[var(--text-primary)]">{project.name}</h1>
-              <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
-                style={{ background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}40` }}>
-                {project.status}
-              </span>
-              <button 
-                onClick={handleSummarize}
-                disabled={summarizing}
-                className="ml-2 p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-800/50 transition-colors disabled:opacity-50"
-                title="AI Project Summary"
-              >
-                {summarizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
-              </button>
-            </div>
-            {project.description && <p className="text-sm text-[var(--text-muted)] mt-1 ml-6">{project.description}</p>}
-          </div>
-          <div className="flex gap-2 flex-shrink-0">
-            <AIAssistant 
-              projectId={id} 
-              projectName={project.name} 
-              projectDescription={project.description} 
-              onTasksGenerated={fetchAll} 
-            />
-            {isAdmin && (
-              <>
-                <button onClick={() => setShowChat(true)} className="btn-secondary text-sm py-2 px-3 flex items-center gap-2">
-                  💬 Chat
-                </button>
-                <button onClick={() => setMemberModal(true)} className="btn-secondary text-sm py-2">👥 Members</button>
-                <button onClick={() => openCreateTask()} className="btn-primary text-sm py-2">+ Task</button>
-              </>
-            )}
-          </div>
-        </div>
+    <div className="space-y-8 animate-slide-up pb-10">
+      {/* Dynamic Background Glow */}
+      <div className="fixed top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] opacity-10 pointer-events-none" 
+           style={{ background: accentColor }} />
 
-        {/* AI Project Summary */}
-        <AnimatePresence>
-          {projectSummary && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }} 
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-4">
-                 <button onClick={() => setProjectSummary('')} className="text-indigo-400 hover:text-indigo-600">✕</button>
-              </div>
-              <div className="flex gap-3">
-                 <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-800 flex items-center justify-center flex-shrink-0">
-                    <Brain className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                 </div>
-                 <div>
-                    <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-2">
-                       AI Executive Summary
-                       <Sparkles className="w-3 h-3 animate-pulse" />
-                    </h4>
-                    <p className="text-sm text-indigo-800 dark:text-indigo-400 mt-1 leading-relaxed">{projectSummary}</p>
-                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* Stats bar */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
-        className="card p-4 flex items-center gap-6">
-        <div className="flex -space-x-2">
-          {project.members?.map(m => (
-            <div key={m._id} title={m.name}
-              className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-white text-xs font-bold"
-              style={{ borderColor: 'var(--surface-2)', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-              {m.name?.charAt(0)}
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <Link to="/projects" className="group flex items-center gap-2 text-xs font-bold text-[var(--text-muted)] hover:text-indigo-400 transition-all mb-4 uppercase tracking-widest">
+            <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Projects
+          </Link>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl relative group overflow-hidden" 
+                 style={{ background: `linear-gradient(135deg, ${accentColor}, #000)` }}>
+              <span className="text-2xl font-black text-white relative z-10">{project.name?.charAt(0).toUpperCase()}</span>
+              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-          ))}
-        </div>
-        <div className="divider h-6 w-px" style={{ height: '24px', width: '1px' }} />
-        <div className="text-sm text-[var(--text-muted)]">
-          <span className="text-[var(--text-primary)] font-semibold">{totalTasks}</span> tasks ·{' '}
-          <span className="text-emerald-400 font-semibold">{doneTasks}</span> done
-        </div>
-        <div className="flex-1 h-1.5 rounded-full overflow-hidden max-w-[200px]" style={{ background: 'var(--surface-4)' }}>
-          <motion.div className="h-full rounded-full"
-            style={{ background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88)` }}
-            initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">{project.name}</h1>
+                <div className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 glass-premium" 
+                     style={{ color: accentColor }}>
+                  {project.status}
+                </div>
+              </div>
+              {project.description && (
+                <p className="text-sm text-[var(--text-muted)] mt-1.5 font-medium max-w-xl leading-relaxed">
+                  {project.description}
+                </p>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
+          <AIAssistant 
+            projectId={id} 
+            projectName={project.name} 
+            projectDescription={project.description} 
+            onTasksGenerated={fetchAll} 
           />
-        </div>
-        <span className="text-sm font-bold" style={{ color: accentColor }}>{pct}%</span>
-      </motion.div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <div className="flex rounded-xl overflow-hidden border border-[var(--border)]" style={{ background: 'var(--surface-2)' }}>
-          {['all', ...STATUSES].map(s => (
-            <button key={s} onClick={() => setFilterStatus(s)}
-              className="px-3 py-2 text-xs font-medium transition-all"
-              style={{
-                background: filterStatus === s ? 'var(--brand-primary)' : 'transparent',
-                color: filterStatus === s ? 'white' : 'var(--text-muted)',
-              }}>
-              {s === 'all' ? 'All' : STATUS_META[s]?.label}
-            </button>
-          ))}
-        </div>
-        <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
-          className="input w-auto py-2 text-xs">
-          <option value="all">All Priorities</option>
-          <option value="high">🔴 High</option>
-          <option value="medium">🟡 Medium</option>
-          <option value="low">🔵 Low</option>
-        </select>
+          <div className="h-10 w-px bg-white/10 mx-2 hidden md:block" />
+          <button onClick={() => setShowChat(true)} className="btn-secondary py-2.5 px-4 flex items-center gap-2 group">
+            <span className="group-hover:scale-125 transition-transform">💬</span>
+            <span className="text-sm font-bold uppercase tracking-wider">Chat</span>
+          </button>
+          <button onClick={() => setMemberModal(true)} className="btn-secondary py-2.5 px-4 group">
+             <span className="group-hover:scale-110 transition-transform">👥</span>
+          </button>
+          <button onClick={() => openCreateTask()} className="btn-primary py-2.5 px-6 shadow-indigo-500/20 group">
+            <span className="group-hover:rotate-90 transition-transform inline-block">+</span>
+            <span className="text-sm font-bold uppercase tracking-wider ml-1">New Task</span>
+          </button>
+        </motion.div>
       </div>
 
-      {/* Kanban Board */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {STATUSES.map(status => {
-            const colTasks = tasksByStatus(status);
-            const meta = STATUS_META[status];
-
-            return (
-              <div key={status}>
-                {/* Column header */}
-                <div className="flex items-center justify-between px-1 mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: meta.color }} />
-                    <h3 className="text-sm font-semibold text-[var(--text-secondary)]">{meta.label}</h3>
-                    <motion.span
-                      key={colTasks.length}
-                      initial={{ scale: 1.4 }}
-                      animate={{ scale: 1 }}
-                      className="text-xs font-bold px-1.5 py-0.5 rounded-full"
-                      style={{ background: meta.bg, color: meta.color }}
-                    >
-                      {colTasks.length}
-                    </motion.span>
-                  </div>
-                  {isAdmin && (
-                    <button
-                      onClick={() => openCreateTask(status)}
-                      className="btn-ghost p-1 text-sm"
-                      title={`Add to ${meta.label}`}
-                    >+</button>
-                  )}
+      {/* Overview Stats + AI Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left: Summary */}
+        <div className="lg:col-span-8 h-full">
+          <AnimatePresence mode="wait">
+            {projectSummary ? (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="glass-premium rounded-[32px] p-8 relative overflow-hidden group border-white/10 glow-pulse"
+              >
+                <div className="absolute top-0 right-0 p-6 z-20">
+                   <button onClick={() => setProjectSummary('')} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all text-[var(--text-muted)]">✕</button>
                 </div>
+                
+                {/* Background Decoration */}
+                <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px]" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
 
-                {/* Droppable column */}
-                <Droppable droppableId={status}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className="rounded-2xl p-2 min-h-[200px] transition-all duration-200"
-                      style={{
-                        background: snapshot.isDraggingOver ? meta.bg : 'rgba(255,255,255,0.01)',
-                        border: `1px solid ${snapshot.isDraggingOver ? meta.color + '40' : 'var(--border)'}`,
-                      }}
-                    >
-                      <AnimatePresence>
-                        {colTasks.length === 0 && !snapshot.isDraggingOver ? (
-                          <div className="flex flex-col items-center justify-center py-10 text-center dot-grid rounded-xl h-36">
-                            <p className="text-2xl mb-2 opacity-40">{status === 'todo' ? '📝' : status === 'in-progress' ? '⚡' : '✓'}</p>
-                            <p className="text-xs text-[var(--text-muted)]">
-                              {isAdmin ? `Drop here or click + to add` : 'No tasks'}
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            {colTasks.map((task, i) => (
-                              <Draggable key={task._id} draggableId={task._id} index={i} isDragDisabled={!isAdmin}>
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    style={{
-                                      ...provided.draggableProps.style,
-                                      transform: snapshot.isDragging
-                                        ? `${provided.draggableProps.style?.transform} rotate(2deg)`
-                                        : provided.draggableProps.style?.transform,
-                                      opacity: snapshot.isDragging ? 0.85 : 1,
-                                    }}
-                                  >
-                                    <TaskCard
-                                      task={task}
-                                      index={i}
-                                      onStatusChange={handleStatusChange}
-                                      onDelete={handleDeleteTask}
-                                      onEdit={openEditTask}
-                                      onClick={(t) => setSelectedTaskId(t._id)}
-                                    />
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-                          </div>
-                        )}
-                      </AnimatePresence>
-                      {provided.placeholder}
-
-                      {/* Inline add */}
-                      {isAdmin && (
-                        <div className="mt-2">
-                          {inlineCol === status ? (
-                            <div className="flex flex-col gap-1.5">
-                              <input
-                                autoFocus
-                                value={inlineTitle}
-                                onChange={e => setInlineTitle(e.target.value)}
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter') handleInlineAdd(status);
-                                  if (e.key === 'Escape') { setInlineCol(null); setInlineTitle(''); }
-                                }}
-                                placeholder="Task title..."
-                                className="input text-xs py-2"
-                              />
-                              <div className="flex gap-1.5">
-                                <button onClick={() => handleInlineAdd(status)} className="btn-primary text-xs py-1.5 flex-1">Add</button>
-                                <button onClick={() => { setInlineCol(null); setInlineTitle(''); }} className="btn-secondary text-xs py-1.5">✕</button>
-                              </div>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => { setInlineCol(status); setInlineTitle(''); }}
-                              className="w-full text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] py-2 rounded-xl hover:bg-white/[0.03] transition-all flex items-center justify-center gap-1"
-                            >
-                              <span>+</span> Add task
-                            </button>
-                          )}
+                <div className="flex gap-6 relative z-10">
+                  <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-2xl animate-float">
+                    <Brain className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <h4 className="text-lg font-black text-white tracking-tight uppercase tracking-[0.2em]">
+                        AI Executive Intel
+                      </h4>
+                      <div className="flex gap-1">
+                        {[1,2,3].map(i => (
+                          <div key={i} className="w-1 h-1 rounded-full bg-indigo-400 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-[15px] text-[var(--text-secondary)] leading-relaxed font-medium">
+                      {projectSummary}
+                    </p>
+                    <div className="flex items-center gap-6 mt-6 pt-6 border-t border-white/5">
+                        <div className="flex items-center gap-2">
+                           <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                           <span className="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest">Strategy Ready</span>
                         </div>
-                      )}
+                        <div className="flex items-center gap-2">
+                           <div className="w-2 h-2 rounded-full bg-amber-500" />
+                           <span className="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest">Optimized Plan</span>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleSummarize}
+                disabled={summarizing}
+                className="w-full h-full min-h-[160px] glass-premium rounded-[32px] border-dashed border-white/10 flex flex-col items-center justify-center gap-4 group transition-all"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/20 transition-all">
+                  {summarizing ? <Loader2 className="w-6 h-6 animate-spin text-indigo-400" /> : <Brain className="w-6 h-6 text-[var(--text-muted)] group-hover:text-indigo-400" />}
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-black text-white uppercase tracking-widest">Generate Intel</p>
+                  <p className="text-[10px] text-[var(--text-muted)] font-medium mt-1">AI-driven project health and priority analysis</p>
+                </div>
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Right: Stats */}
+        <div className="lg:col-span-4 h-full">
+           <div className="glass-premium rounded-[32px] p-8 h-full border-white/10 flex flex-col justify-between">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-1">Velocity</p>
+                  <h3 className="text-4xl font-black text-white">{pct}%</h3>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-black">
+                   🚀
+                </div>
+              </div>
+              
+              <div className="my-8 relative h-2 bg-white/5 rounded-full overflow-hidden">
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex -space-x-2.5">
+                  {project.members?.slice(0, 4).map(m => (
+                    <div key={m._id} className="w-9 h-9 rounded-xl border-2 border-[var(--surface-1)] flex items-center justify-center text-white text-[10px] font-black shadow-xl"
+                         style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}>
+                      {m.name?.charAt(0).toUpperCase()}
+                    </div>
+                  ))}
+                  {project.members?.length > 4 && (
+                    <div className="w-9 h-9 rounded-xl border-2 border-[var(--surface-1)] bg-white/10 flex items-center justify-center text-[10px] font-black text-white">
+                      +{project.members.length - 4}
                     </div>
                   )}
-                </Droppable>
+                </div>
+                <div className="text-right">
+                   <p className="text-xs font-bold text-white uppercase tracking-wider">{doneTasks} / {totalTasks}</p>
+                   <p className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-widest">Milestones</p>
+                </div>
               </div>
-            );
-          })}
+           </div>
         </div>
-      </DragDropContext>
+      </div>
 
-      {/* Task Create/Edit Modal */}
-      <Modal isOpen={taskModal} onClose={() => setTaskModal(false)} title={editTask ? 'Edit Task' : 'New Task'} size="lg">
-        <form onSubmit={handleTaskSubmit} className="space-y-4">
+      {/* Board View */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-6">
+               <h3 className="text-sm font-black text-white uppercase tracking-[0.3em]">Sprint Board</h3>
+               <div className="flex items-center gap-2 glass-premium rounded-full p-1 border-white/5">
+                  {['all', ...STATUSES].map(s => (
+                    <button key={s} onClick={() => setFilterStatus(s)}
+                      className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                        filterStatus === s ? 'bg-white/10 text-white shadow-xl' : 'text-[var(--text-muted)] hover:text-white'
+                      }`}>
+                      {s}
+                    </button>
+                  ))}
+               </div>
+            </div>
+            <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
+              className="bg-transparent text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] outline-none cursor-pointer hover:text-white transition-colors">
+              <option value="all">Priority: All</option>
+              <option value="high">Priority: High</option>
+              <option value="medium">Priority: Med</option>
+              <option value="low">Priority: Low</option>
+            </select>
+        </div>
+
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {STATUSES.map(status => {
+              const colTasks = tasksByStatus(status);
+              const meta = STATUS_META[status];
+
+              return (
+                <div key={status} className="flex flex-col min-h-[600px]">
+                  <div className="flex items-center justify-between px-3 py-4 glass-premium rounded-2xl border-white/5 mb-4 shadow-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" style={{ background: meta.color }} />
+                      <h3 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">{status.replace('-', ' ')}</h3>
+                    </div>
+                    <span className="text-[10px] font-black bg-white/5 px-2 py-0.5 rounded-md text-[var(--text-muted)]">
+                      {colTasks.length}
+                    </span>
+                  </div>
+
+                  <Droppable droppableId={status}>
+                    {(provided, snapshot) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className={`flex-1 rounded-3xl transition-all duration-300 ${
+                          snapshot.isDraggingOver ? 'bg-white/[0.03] scale-[0.99] ring-1 ring-white/10' : ''
+                        }`}
+                      >
+                        <div className="space-y-4 p-1">
+                          {colTasks.map((t, idx) => (
+                            <Draggable key={t._id} draggableId={t._id} index={idx}>
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={snapshot.isDragging ? 'z-[100]' : ''}
+                                >
+                                  <TaskCard 
+                                    task={t} 
+                                    index={idx}
+                                    onStatusChange={handleStatusChange}
+                                    onDelete={handleDeleteTask}
+                                    onEdit={openEditTask}
+                                    onClick={setSelectedTaskId}
+                                  />
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                          
+                          {isAdmin && (
+                            <motion.button 
+                              whileHover={{ scale: 1.01 }}
+                              whileTap={{ scale: 0.99 }}
+                              onClick={() => openCreateTask(status)}
+                              className="w-full py-4 rounded-2xl border border-dashed border-white/5 hover:border-white/20 hover:bg-white/[0.02] text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest transition-all"
+                            >
+                              + New Milestone
+                            </motion.button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </Droppable>
+                </div>
+              );
+            })}
+          </div>
+        </DragDropContext>
+      </div>
+
+      {/* Modals */}
+      <Modal isOpen={taskModal} onClose={() => setTaskModal(false)} title={editTask ? 'Refine Milestone' : 'New Milestone'} size="lg">
+        <form onSubmit={handleTaskSubmit} className="space-y-6">
           <div>
-            <label className="label">Task title *</label>
-            <input className="input" placeholder="e.g. Design landing page hero section" value={taskForm.title}
+            <label className="label">Milestone Title</label>
+            <input className="input !bg-white/5 border-white/10 focus:border-indigo-500" placeholder="Focus on the primary outcome..." value={taskForm.title}
               onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} required minLength={2} />
           </div>
           <div>
-            <label className="label">Description</label>
+            <label className="label">Detailed Intent</label>
             <RichTextEditor 
               content={taskForm.description} 
               onChange={(html) => setTaskForm({ ...taskForm, description: html })} 
-              placeholder="What needs to be done? Use / for commands..."
+              placeholder="Strategic details and requirements..."
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="label">Assign to</label>
-              <select className="input" value={taskForm.assignedTo} onChange={e => setTaskForm({ ...taskForm, assignedTo: e.target.value })}>
-                <option value="">Unassigned</option>
+              <label className="label">Ownership</label>
+              <select className="input !bg-white/5 border-white/10" value={taskForm.assignedTo} onChange={e => setTaskForm({ ...taskForm, assignedTo: e.target.value })}>
+                <option value="">Reserve for future</option>
                 {project.members?.map(m => <option key={m._id} value={m._id}>{m.name}</option>)}
               </select>
             </div>
             <div>
               <label className="label">Status</label>
-              <select className="input" value={taskForm.status} onChange={e => setTaskForm({ ...taskForm, status: e.target.value })}>
-                <option value="todo">📝 To Do</option>
-                <option value="in-progress">⚡ In Progress</option>
-                <option value="done">✅ Done</option>
+              <select className="input !bg-white/5 border-white/10" value={taskForm.status} onChange={e => setTaskForm({ ...taskForm, status: e.target.value })}>
+                <option value="todo">📝 Strategy</option>
+                <option value="in-progress">⚡ Execution</option>
+                <option value="done">✅ Finalized</option>
               </select>
             </div>
             <div>
-              <label className="label">Priority</label>
-              <select className="input" value={taskForm.priority} onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}>
-                <option value="low">🔵 Low</option>
-                <option value="medium">🟡 Medium</option>
-                <option value="high">🔴 High</option>
+              <label className="label">Priority Intel</label>
+              <select className="input !bg-white/5 border-white/10" value={taskForm.priority} onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}>
+                <option value="low">🔵 Low Impact</option>
+                <option value="medium">🟡 Standard</option>
+                <option value="high">🔴 Mission Critical</option>
               </select>
             </div>
             <div>
-              <label className="label">Due date</label>
-              <input type="date" className="input" value={taskForm.dueDate}
+              <label className="label">Target Date</label>
+              <input type="date" className="input !bg-white/5 border-white/10" value={taskForm.dueDate}
                 onChange={e => setTaskForm({ ...taskForm, dueDate: e.target.value })} />
             </div>
           </div>
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={() => setTaskModal(false)} className="btn-secondary flex-1 justify-center">Cancel</button>
-            <button type="submit" disabled={submitting} className="btn-primary flex-1 justify-center">
-              {submitting ? 'Saving...' : editTask ? 'Update Task' : 'Create Task'}
+          <div className="flex gap-4 pt-4">
+            <button type="button" onClick={() => setTaskModal(false)} className="btn-secondary flex-1 justify-center py-3 uppercase tracking-widest text-[10px] font-black">Abort</button>
+            <button type="submit" disabled={submitting} className="btn-primary flex-1 justify-center py-3 uppercase tracking-widest text-[10px] font-black shadow-indigo-500/20">
+              {submitting ? 'Syncing...' : editTask ? 'Refine' : 'Deploy'}
             </button>
           </div>
         </form>
       </Modal>
 
       {/* Members Modal */}
-      <Modal isOpen={memberModal} onClose={() => setMemberModal(false)} title="Manage Members">
-        <div className="space-y-4">
+      <Modal isOpen={memberModal} onClose={() => setMemberModal(false)} title="Operational Team">
+        <div className="space-y-6">
           <div>
-            <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-3">Current Members</p>
-            <div className="space-y-2">
+            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4">Core Personnel</p>
+            <div className="space-y-3">
               {project.members?.map(m => (
-                <div key={m._id} className="flex items-center justify-between p-3 rounded-xl"
-                  style={{ background: 'var(--surface-3)' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                <div key={m._id} className="flex items-center justify-between p-4 rounded-2xl glass-premium border-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-black shadow-xl"
                       style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-                      {m.name?.charAt(0)}
+                      {m.name?.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[var(--text-primary)]">{m.name}</p>
-                      <p className="text-xs text-[var(--text-muted)]">{m.email} · {m.role}</p>
+                      <p className="text-sm font-black text-white">{m.name}</p>
+                      <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{m.role}</p>
                     </div>
                   </div>
                   {m._id !== project.createdBy?._id && isAdmin && (
-                    <button onClick={() => handleRemoveMember(m._id)} className="btn-ghost text-xs text-red-400 hover:text-red-300">
-                      Remove
+                    <button onClick={() => handleRemoveMember(m._id)} className="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all text-[10px]">
+                      ✕
                     </button>
                   )}
                 </div>
@@ -642,21 +658,20 @@ export default function ProjectView() {
           </div>
 
           {nonMembers.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-2">Add Member</p>
+            <div className="pt-6 border-t border-white/5">
+              <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4">Recruit Member</p>
               <div className="flex gap-2">
-                <select className="input flex-1" value={selectedUser} onChange={e => setSelectedUser(e.target.value)}>
-                  <option value="">Select a user...</option>
+                <select className="input flex-1 !bg-white/5 border-white/10 text-xs" value={selectedUser} onChange={e => setSelectedUser(e.target.value)}>
+                  <option value="">Select individual...</option>
                   {nonMembers.map(u => <option key={u._id} value={u._id}>{u.name} ({u.role})</option>)}
                 </select>
-                <button onClick={handleAddMember} disabled={!selectedUser} className="btn-primary">Add</button>
+                <button onClick={handleAddMember} disabled={!selectedUser} className="btn-primary py-2 px-6 text-[10px] font-black uppercase tracking-widest">Add</button>
               </div>
             </div>
           )}
         </div>
       </Modal>
 
-      {/* Task Slide Over */}
       <TaskSlideOver
         taskId={selectedTaskId}
         open={!!selectedTaskId}
@@ -664,7 +679,6 @@ export default function ProjectView() {
         onUpdated={fetchAll}
       />
 
-      {/* Chat Panel */}
       <ChatPanel
         projectId={id}
         open={showChat}

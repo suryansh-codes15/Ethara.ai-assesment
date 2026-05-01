@@ -30,19 +30,17 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
             className="fixed inset-0 z-[71] flex items-center justify-center p-4 pointer-events-none"
           >
             <div
-              className="w-full pointer-events-auto"
+              className="w-full pointer-events-auto glass-premium"
               style={{
                 maxWidth: widths[size] || widths.md,
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border-hover)',
-                borderRadius: '20px',
-                boxShadow: '0 30px 80px rgba(0,0,0,0.5)',
+                borderRadius: '32px',
+                border: '1px solid rgba(255,255,255,0.12)',
               }}
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
-                <h3 className="font-bold text-[var(--text-primary)] text-base">{title}</h3>
+              <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+                <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">{title}</h3>
                 <button
                   onClick={onClose}
                   className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/10 transition-all text-sm"
