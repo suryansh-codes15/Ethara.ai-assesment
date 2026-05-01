@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { publicAPI } from '../api';
 
 const S = {
   page: { background: '#02020a', minHeight: '100vh', color: '#f8fafc', fontFamily: "'Manrope', system-ui, sans-serif", overflowX: 'hidden', position: 'relative' },
@@ -69,11 +70,11 @@ const FEATURES = [
   { icon: '🔒', title: 'Enterprise Security', desc: 'JWT auth, RBAC permissions, rate limiting, XSS protection, and full audit logs.' },
 ];
 
-const STATS = [
-  { val: '2,400+', label: 'Teams using TaskFlow' },
-  { val: '1.2M+', label: 'Tasks completed' },
-  { val: '99.9%', label: 'Uptime guarantee' },
-  { val: '4.9★', label: 'Average rating' },
+const DEFAULT_STATS = [
+  { val: '0', label: 'Active Projects' },
+  { val: '0', label: 'Tasks Orchestrated' },
+  { val: '99.9%', label: 'Uptime Reliability' },
+  { val: '0', label: 'Active Personnel' },
 ];
 
 const PLANS = [
@@ -86,6 +87,17 @@ export default function Landing() {
   const navigate = useNavigate();
   const mockupRef = useRef(null);
   const [taskPos, setTaskPos] = useState(0);
+  const [stats, setStats] = useState(DEFAULT_STATS);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await publicAPI.getStats();
+        if (res.data.success) setStats(res.data.stats);
+      } catch (err) { console.error('Failed to fetch public stats', err); }
+    };
+    fetchStats();
+  }, []);
 
   // Animate task card across kanban columns
   useEffect(() => {
@@ -201,7 +213,7 @@ export default function Landing() {
       {/* Stats */}
       <div style={S.statsBar}>
         <div style={S.statsGrid}>
-          {STATS.map(({ val, label }) => (
+          {stats.map(({ val, label }) => (
             <div key={label}>
               <div style={{ ...S.statNum, ...S.gradientText }}>{val}</div>
               <div style={S.statLabel}>{label}</div>

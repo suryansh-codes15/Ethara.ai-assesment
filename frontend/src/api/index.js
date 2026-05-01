@@ -6,6 +6,10 @@ export const chatAPI = {
 
 export default api;
 
+export const publicAPI = {
+  getStats: () => api.get('/public/stats'),
+};
+
 export const authAPI = {
   signup: (data) => api.post('/auth/signup', data),
   login: (data) => api.post('/auth/login', data),
