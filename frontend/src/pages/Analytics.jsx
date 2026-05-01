@@ -52,6 +52,14 @@ export default function Analytics() {
     </div>
   );
 
+  if (!data) return (
+    <div className="flex flex-col items-center justify-center h-screen p-8 bg-gray-50 dark:bg-gray-900 text-center">
+      <div className="text-6xl mb-4">🔐</div>
+      <h2 className="text-2xl font-bold mb-2">Access Restricted</h2>
+      <p className="text-gray-500 max-w-md">Enterprise analytics are reserved for administrative personnel. Please contact your workspace administrator for access.</p>
+    </div>
+  );
+
   return (
     <div className="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100">
       <div className="max-w-7xl mx-auto space-y-8">

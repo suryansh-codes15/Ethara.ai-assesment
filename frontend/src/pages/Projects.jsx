@@ -80,6 +80,7 @@ export default function Projects() {
       setModal(false);
       setSearchParams({});
       fetchProjects();
+      window.dispatchEvent(new Event('refreshDashboard'));
       toast.success(editProject ? 'Project updated' : 'Project created');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save project');

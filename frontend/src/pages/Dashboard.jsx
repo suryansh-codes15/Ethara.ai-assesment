@@ -59,7 +59,7 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
-      const [dashRes, heatRes, velRes, lbRes] = await Promise.all([
+      const [dashRes, heatRes, velRes, lbRes, activityRes] = await Promise.all([
         dashboardAPI.getStats(),
         analyticsAPI.getHeatmap().catch(() => ({ data: { heatmap: {} } })),
         analyticsAPI.getVelocity().catch(() => ({ data: { velocity: [] } })),
@@ -80,7 +80,12 @@ export default function Dashboard() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    fetchData(); 
+    const refresh = () => fetchData();
+    window.addEventListener('refreshDashboard', refresh);
+    return () => window.removeEventListener('refreshDashboard', refresh);
+  }, []);
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
