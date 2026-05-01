@@ -60,6 +60,7 @@ app.use("/api/sprints", require("./routes/sprints"));
 app.use("/api/ai", require("./routes/ai"));
 app.use("/api/analytics", require("./routes/analytics"));
 app.use("/api/search", require("./routes/search"));
+app.use("/api/dashboard", require("./routes/dashboard"));
 app.use("/api/chat", require("./routes/chat"));
 
 app.get("/", (req, res) => {
