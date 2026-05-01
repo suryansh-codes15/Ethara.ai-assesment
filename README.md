@@ -1,9 +1,8 @@
-# 🚀 Obsidian Pro — Enterprise Task Platform
+# 🚀 TaskFlow.ai — Enterprise AI Task Orchestration
 
-The "Obsidian Pro" edition of TaskFlow is a high-performance, premium SaaS platform for team task management. It features a stunning glass-morphism UI, real-time analytics, and enterprise-grade security.
+TaskFlow.ai is a high-performance, premium SaaS platform for team task management. It features a stunning glass-morphism UI, real-time AI-driven analytics, and enterprise-grade security.
 
-**Live Demo**: [your-url.railway.app](https://your-url.railway.app)  
-**API Docs**: [your-backend.railway.app](https://your-backend.railway.app)
+**Live Site**: [etharaai-assesment_production.up.railway.app](https://etharaai-assesment_production.up.railway.app)
 
 ---
 
@@ -17,12 +16,13 @@ The "Obsidian Pro" edition of TaskFlow is a high-performance, premium SaaS platf
 
 ## 📸 Key Features
 
-- 📊 **Executive Dashboard** — High-impact Recharts analytics and activity heatmaps.
+- 🧠 **AI Task Generation** — Groq-powered strategy generator that builds 8+ milestones in seconds.
+- 📊 **Real-Time Dashboard** — Dynamic stats synced directly from the database with automated refresh.
+- 📉 **Advanced Analytics** — Velocity charts, activity heatmaps, and burndown graphs for executive insights.
 - 📋 **Premium Kanban** — Drag-and-drop workflow with `@hello-pangea/dnd`.
 - 👥 **Role-Based Control** — Secure Admin vs Member permissions via JWT.
-- 📁 **Project Hub** — Manage project health, accent colors, and team members.
-- 🔒 **Security Hardened** — Helmet, Morgan, and Rate Limiting integrated.
-- ⚡ **Optimized Data Layer** — Prisma ORM with SQLite for fast, type-safe queries.
+- 🔒 **Security Hardened** — Helmet, Morgan, XSS Protection, and Rate Limiting integrated.
+- ⚡ **Optimized Data Layer** — Prisma ORM with SQLite (dev) / PostgreSQL (prod) support.
 
 ---
 
@@ -32,6 +32,7 @@ The "Obsidian Pro" edition of TaskFlow is a high-performance, premium SaaS platf
 |-------|-----------|
 | Frontend | React 18, Framer Motion, Recharts, Tailwind CSS |
 | Backend | Node.js, Express.js |
+| AI Engine | Groq SDK (Llama 3) |
 | Database | SQLite with Prisma ORM |
 | Auth | JWT (JSON Web Tokens) + bcrypt |
 | Deployment | Railway |
@@ -67,12 +68,10 @@ taskmanager/
    ```
    DATABASE_URL="file:./dev.db"
    JWT_SECRET=your_secret_key
+   GROQ_API_KEY=your_key
    NODE_ENV=production
    FRONTEND_URL=https://your-frontend.railway.app
    ```
-4. Railway auto-detects Node.js and deploys.
-   > [!NOTE]
-   > SQLite data resets on every deployment. For persistent production data, use a Railway PostgreSQL service.
 
 ### Deploy Frontend
 1. Add another service (select the `frontend/` folder).
