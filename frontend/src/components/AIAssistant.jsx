@@ -82,7 +82,7 @@ export default function AIAssistant({ projectId, projectName, projectDescription
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          className="absolute top-16 right-0 w-[440px] glass-premium rounded-[32px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)] border border-white/10 overflow-hidden z-[100]"
+          className="absolute top-16 right-0 w-[460px] bg-[#0d0d1a] rounded-[32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] border border-white/10 overflow-hidden z-[1000]"
         >
           {/* Header */}
           <div className="px-8 py-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">

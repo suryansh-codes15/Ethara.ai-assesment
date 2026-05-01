@@ -31,9 +31,16 @@ const STAT_CONFIGS = [
 const CustomAreaTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="px-3 py-2 rounded-xl text-xs" style={{ background: 'var(--surface-3)', border: '1px solid var(--border)' }}>
-      <p className="text-[var(--text-muted)] mb-1">{label}</p>
-      <p className="font-semibold text-[var(--text-primary)]">{payload[0]?.value} tasks done</p>
+    <div className="px-4 py-2.5 glass-premium rounded-xl text-xs border border-white/10 shadow-2xl" style={{ background: 'rgba(13,13,26,0.95)' }}>
+      <p className="text-[var(--text-muted)] font-black uppercase tracking-widest text-[9px] mb-1.5">{label}</p>
+      {payload.map((entry, index) => (
+        <div key={index} className="flex items-center gap-2 mt-1">
+          <div className="w-1.5 h-1.5 rounded-full" style={{ background: entry.color }} />
+          <p className="font-bold text-white">
+            <span className="opacity-60">{entry.name}:</span> {entry.value}
+          </p>
+        </div>
+      ))}
     </div>
   );
 };
@@ -224,13 +231,13 @@ export default function Dashboard() {
           <p className="text-xs text-[var(--text-muted)] mb-4">Total vs completed</p>
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={chartData} barGap={4}>
-                <XAxis dataKey="name" tick={{ fill: '#475569', fontSize: 10 }} tickLine={false} axisLine={false}
-                  tickFormatter={v => v.length > 8 ? v.slice(0, 8) + '…' : v} />
-                <YAxis tick={{ fill: '#475569', fontSize: 10 }} tickLine={false} axisLine={false} width={20} allowDecimals={false} />
-                <Tooltip content={<CustomAreaTooltip />} />
-                <Bar dataKey="count" name="Total" radius={[4, 4, 0, 0]} fill="rgba(99,102,241,0.4)" />
-                <Bar dataKey="done" name="Done" radius={[4, 4, 0, 0]} fill="#6366f1" />
+              <BarChart data={chartData} barCategoryGap="30%" barGap={2}>
+                <XAxis dataKey="name" tick={{ fill: '#475569', fontSize: 9 }} tickLine={false} axisLine={false}
+                  tickFormatter={v => v.length > 10 ? v.slice(0, 10) + '…' : v} />
+                <YAxis tick={{ fill: '#475569', fontSize: 9 }} tickLine={false} axisLine={false} width={20} allowDecimals={false} />
+                <Tooltip content={<CustomAreaTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                <Bar dataKey="count" name="Total" radius={[2, 2, 0, 0]} fill="rgba(99,102,241,0.3)" barSize={10} />
+                <Bar dataKey="done" name="Done" radius={[2, 2, 0, 0]} fill="#6366f1" barSize={10} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
