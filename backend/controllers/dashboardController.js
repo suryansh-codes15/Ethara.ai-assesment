@@ -89,6 +89,7 @@ const getDashboardStats = async (req, res, next) => {
       tasksByProject,
     });
   } catch (error) {
+    console.error("Dashboard Controller Error:", error);
     next(error);
   }
 };

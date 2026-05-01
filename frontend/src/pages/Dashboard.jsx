@@ -91,7 +91,9 @@ export default function Dashboard() {
     try {
       await tasksAPI.update(taskId, { status: newStatus });
       fetchData();
-    } catch { /* silent */ }
+    } catch (error) {
+      console.error("Dashboard Stats Error:", error);
+    }
   };
 
   const { text: greetText } = greeting();
@@ -138,9 +140,10 @@ export default function Dashboard() {
               {greetText}, {user?.name?.split(' ')[0]}!
             </h1>
             <p className="text-white/60 text-sm mt-1">
-              {stats?.totalTasks === 0
+              {!stats ? 'Syncing your workspace data...' : 
+               stats.totalTasks === 0
                 ? 'Ready to start something great today?'
-                : `${stats?.completionRate}% of your tasks are complete. Keep it up! 🚀`}
+                : `${stats.completionRate || 0}% of your tasks are complete. Keep it up! 🚀`}
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
