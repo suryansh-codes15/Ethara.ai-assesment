@@ -43,18 +43,27 @@ export default function TaskSlideOver({ taskId, open, onClose, onUpdated }) {
     if (!taskId) return;
     setLoading(true);
     try {
-      const [taskRes, commentsRes, activityRes] = await Promise.all([
-        tasksAPI.getOne(taskId),
-        commentsAPI.getAll(taskId),
-        activityAPI.getAll({ entityId: taskId })
-      ]);
-      setTask(taskRes.data.task);
-      setDescValue(taskRes.data.task.description || '');
-      setSubtasks(taskRes.data.task.subtasks || []);
-      setComments(commentsRes.data.comments || []);
-      setActivities(activityRes.data.activities || []);
-    } catch { /* silent */ }
-    finally { setLoading(false); }
+      // We only strictly NEED the task data to show the slideover.
+      // Comments and Activity are secondary and can fail gracefully.
+      const taskRes = await tasksAPI.getOne(taskId);
+      const taskData = taskRes.data.task;
+      
+      setTask(taskData);
+      setDescValue(taskData.description || '');
+      setSubtasks(taskData.subtasks || []);
+      setComments(taskData.comments || []);
+
+      // Fetch activity separately so it doesn't block the UI
+      activityAPI.getAll({ entityId: taskId })
+        .then(res => setActivities(res.data.activities || []))
+        .catch(err => console.error("Failed to fetch activity:", err));
+
+    } catch (err) {
+      console.error("Task fetch failed:", err);
+      setTask(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

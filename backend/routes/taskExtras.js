@@ -9,13 +9,13 @@ const {
 router.use(protect);
 
 // Comments
-router.post('/:id/comments', addComment);
-router.get('/:id/comments', getComments);
+router.post('/:taskId/comments', addComment);
+router.get('/:taskId/comments', getComments);
 
 // Subtasks
-router.post('/:id/subtasks', addSubtask);
-router.get('/:id/subtasks', getSubtasks);
-router.patch('/:id/subtasks/:sid', toggleSubtask);
-router.delete('/:id/subtasks/:sid', deleteSubtask);
+router.post('/:taskId/subtasks', addSubtask);
+router.get('/:taskId/subtasks', getSubtasks);
+router.patch('/:taskId/subtasks/:sid', toggleSubtask);
+router.delete('/:taskId/subtasks/:sid', deleteSubtask);
 
 module.exports = router;

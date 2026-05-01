@@ -50,7 +50,7 @@ const getComments = async (req, res, next) => {
 
 const getSubtasks = async (req, res, next) => {
   try {
-    const { id: taskId } = req.params;
+    const { taskId } = req.params;
     const subtasks = await prisma.subtask.findMany({
       where: { taskId },
       orderBy: { order: 'asc' }
@@ -63,7 +63,7 @@ const getSubtasks = async (req, res, next) => {
 
 const addSubtask = async (req, res, next) => {
   try {
-    const { id: taskId } = req.params;
+    const { taskId } = req.params;
     const { title } = req.body;
     
     const subtask = await prisma.subtask.create({

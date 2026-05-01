@@ -47,15 +47,15 @@ export const analyticsAPI = {
 };
 
 export const commentsAPI = {
-  getAll: (taskId) => api.get(`/comments/task/${taskId}`),
-  add: (taskId, text) => api.post('/comments', { taskId, text }),
+  getAll: (taskId) => api.get(`/task-extras/${taskId}/comments`),
+  add: (taskId, text) => api.post(`/task-extras/${taskId}/comments`, { taskId, text }),
 };
 
 export const subtasksAPI = {
-  getAll: (taskId) => api.get(`/tasks/${taskId}/subtasks`),
-  add: (taskId, title) => api.post(`/tasks/${taskId}/subtasks`, { title }),
-  toggle: (taskId, subtaskId) => api.patch(`/tasks/${taskId}/subtasks/${subtaskId}`),
-  delete: (taskId, subtaskId) => api.delete(`/tasks/${taskId}/subtasks/${subtaskId}`),
+  getAll: (taskId) => api.get(`/task-extras/${taskId}/subtasks`),
+  add: (taskId, title) => api.post(`/task-extras/${taskId}/subtasks`, { title }),
+  toggle: (taskId, subtaskId) => api.patch(`/task-extras/${taskId}/subtasks/${subtaskId}`),
+  delete: (taskId, subtaskId) => api.delete(`/task-extras/${taskId}/subtasks/${subtaskId}`),
 };
 
 export const notificationsAPI = {
