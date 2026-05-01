@@ -173,7 +173,9 @@ export default function Landing() {
             <button className="btn-big" style={S.ctaBig} onClick={() => navigate('/signup')}>Start for Free →</button>
             <button className="btn-ghost-big" style={S.ctaGhost}>▶ Watch Demo</button>
           </div>
-          <p style={{ color: '#475569', fontSize: 13 }}>★★★★★ Trusted by 2,400+ teams worldwide · No credit card required</p>
+          <p style={{ color: '#475569', fontSize: 13 }}>
+            ★★★★★ Trusted by {stats.find(s => s.label === 'Active Projects')?.val || '0'} projects worldwide · No credit card required
+          </p>
 
           {/* Mockup */}
           <div ref={mockupRef} style={{ ...S.mockup, transition: 'transform .15s ease-out' }}>
@@ -246,7 +248,9 @@ export default function Landing() {
         <div style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ ...S.badge, margin: '0 auto 2rem' }}>START TODAY — FREE FOREVER</div>
           <h2 style={{ ...S.h2, fontSize: 'clamp(2.5rem,8vw,4rem)' }}>Your team is waiting.</h2>
-          <p style={{ color: '#64748b', fontSize: 17, marginTop: 12 }}>Join 2,400+ teams who ship faster with TaskFlow.ai</p>
+          <p style={{ color: '#64748b', fontSize: 17, marginTop: 12 }}>
+            Empowering {stats.find(s => s.label === 'Active Projects')?.val || '0'} projects and teams worldwide.
+          </p>
           <div style={S.emailRow}>
             <input placeholder="you@company.com" style={S.emailInput} />
             <button className="btn-big" style={S.ctaBig} onClick={() => navigate('/signup')}>Get Early Access →</button>
