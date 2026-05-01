@@ -149,7 +149,7 @@ export default function Landing() {
           TaskFlow.ai
         </div>
         <ul style={S.navLinks}>
-          {['Features', 'Demo'].map(l => (
+          {['Features'].map(l => (
             <li key={l}><a href={`#${l.toLowerCase()}`} className="nav-link-hover" style={S.navLink}>{l}</a></li>
           ))}
         </ul>
