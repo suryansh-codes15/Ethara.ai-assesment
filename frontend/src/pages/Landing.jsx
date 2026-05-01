@@ -148,11 +148,7 @@ export default function Landing() {
           <div style={S.logoBox}>⚡</div>
           TaskFlow.ai
         </div>
-        <ul style={S.navLinks}>
-          {['Features'].map(l => (
-            <li key={l}><a href={`#${l.toLowerCase()}`} className="nav-link-hover" style={S.navLink}>{l}</a></li>
-          ))}
-        </ul>
+        {/* Navbar links removed as requested */}
         <div style={S.navRight}>
           <button style={S.btnSecondary} onClick={() => navigate('/login')}>Log in</button>
           <button className="btn-big" style={S.btnPrimary} onClick={() => navigate('/signup')}>Get Started →</button>
